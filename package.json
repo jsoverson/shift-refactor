@@ -1,0 +1,48 @@
+{
+  "name": "shift-refactor",
+  "version": "0.0.1",
+  "description": "A suite of utilities to query and modify JavaScript source",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "files": [
+    "src",
+    "readme.md"
+  ],
+  "keywords": [
+    "refactor",
+    "javascript",
+    "ecmascript",
+    "ast",
+    "shift",
+    "esprima",
+    "esquery",
+    "spidermonkey",
+    "acorn",
+    "babel"
+  ],
+  "dependencies": {
+    "shift-codegen": "^6.0.0",
+    "shift-parser": "^7.0.0",
+    "shift-query": "^1.0.0",
+    "shift-scope": "^4.0.0",
+    "shift-traverser": "^1.0.0",
+    "shift-validator": "^4.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^6.1.0",
+    "mocha": "^5.2.0",
+    "prettier": "^1.18.2",
+    "shift-ast": "^6.0.0"
+  },
+  "scripts": {
+    "test": "mocha test",
+    "lint": "eslint src test",
+    "format": "prettier --write 'src/**/*.js' 'test/**/*.js'"
+  },
+  "author": "Jarrod Overson",
+  "license": "Apache-2.0"
+}
