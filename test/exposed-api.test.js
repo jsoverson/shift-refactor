@@ -5,8 +5,7 @@ const chai = require("chai");
 
 describe("API", function() {
   it("should expose.query()", () => {
-    let ast = parse(`function foo(){}\nfoo();`);
-    const refactor = new RefactorSession(ast);
+    const refactor = new RefactorSession(`function foo(){}\nfoo();`);
     const nodes = refactor.query(`FunctionDeclaration[name.name="foo"]`);
     chai.expect(nodes.length).to.equal(1);
   });

@@ -40,6 +40,7 @@ function findNodes(ast, input) {
 
 class RefactorSession {
   constructor(ast, { autoCleanup = true } = {}) {
+    if (isString(ast)) ast = parseScript(ast);
     this.ast = ast;
     this.autoCleanup = autoCleanup;
     this.dirty = false;
