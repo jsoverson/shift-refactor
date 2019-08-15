@@ -61,7 +61,7 @@ class RefactorSession {
     });
   }
   delete(selector) {
-    const nodes = query(this.ast, selector);
+    const nodes = findNodes(this.ast, selector);
     if (nodes.length > 0) {
       nodes.forEach(node => this._queueDeletion(node));
     }

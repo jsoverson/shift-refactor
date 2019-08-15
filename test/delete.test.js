@@ -11,4 +11,11 @@ describe("delete", function() {
     chai.expect(refactor.ast.statements.length).to.equal(1);
     chai.expect(refactor.ast).to.deep.equal(parse("foo();"));
   });
+  it("should accept actual nodes", () => {
+    let ast = parse(`function foo(){}\nfoo();`);
+    const refactor = new RefactorSession(ast);
+    refactor.delete(ast.statements[0]);
+    chai.expect(refactor.ast.statements.length).to.equal(1);
+    chai.expect(refactor.ast).to.deep.equal(parse("foo();"));
+  });
 });
