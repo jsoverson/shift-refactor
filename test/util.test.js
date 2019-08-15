@@ -37,6 +37,18 @@ describe("util", function() {
           parse("const c=1, d=2; var a; function b(){const e=2;e++};b();")
         );
     });
+    it("should not change global vars", () => {
+      let ast = parse(
+        `const zzzz=1; console.log(zzzz)`
+      );
+      const refactor = new RefactorSession(ast);
+      refactor.normalizeIdentifiers();
+      chai
+        .expect(refactor.ast)
+        .to.deep.equal(
+          parse("const a=1; console.log(a)")
+        );
+    });
   });
   xit("uncollapseVars", () => {
     let ast = parse(`let r = require, w = window;w.document = r("test")`);

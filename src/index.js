@@ -261,7 +261,7 @@ class RefactorSession {
 
 function renameScope(scope, idGenerator) {
   scope.variableList.forEach(variable => {
-    if (variable.name === "arguments") return;
+    if (variable.declarations.length === 0) return;
     const nextId = idGenerator.next();
     variable.declarations.forEach(_ => (_.node.name = nextId));
     variable.references.forEach(_ => (_.node.name = nextId));
