@@ -75,7 +75,21 @@ class RefactorSession {
 
     nodes.forEach(node => {
       if (isFunction(program)) {
-        this._queueReplacement(node, program(node));
+        const rv = program(node);
+        if (isShiftNode(rv)) {
+          this._queueReplacement(node, program(node));
+        } else if (isString(rv)) {
+          const returnedTree = parseScript(rv);
+          if (isStatement(node)) {
+            this._queueReplacement(node, extractStatement(returnedTree));
+          } else {
+            this._queueReplacement(node, extractExpression(returnedTree));
+          }
+        } else {
+          throw new RefactorError(
+            `Invalid return type from replacement function: ${rv}`
+          );
+        }
       } else if (isStatement(node)) {
         this._queueReplacement(node, copy(replacement.statements[0]));
       } else {
@@ -85,6 +99,7 @@ class RefactorSession {
         );
       }
     });
+
     if (this.autoCleanup) this.cleanup();
     return nodes.length;
   }
@@ -256,6 +271,36 @@ class RefactorSession {
     const lookupTable = this._getGlobalLookupTable(this.ast);
     const idGenerator = new IdGenerator();
     renameScope(lookupTable.scope, idGenerator);
+  }
+}
+
+function extractStatement(tree) {
+  // catch the case where a string was parsed alone and read as a directive.
+  if (tree.directives.length > 0) {
+    return new Shift.ExpressionStatement({
+      expression: new Shift.LiteralStringExpression({
+        value: tree.directives[0].rawValue
+      })
+    });
+  } else {
+    return tree.statements[0];
+  }
+}
+
+function extractExpression(tree) {
+  // catch the case where a string was parsed alone and read as a directive.
+  if (tree.directives.length > 0) {
+    return new Shift.LiteralStringExpression({
+      value: tree.directives[0].rawValue
+    });
+  } else {
+    if (tree.statements[0].type === "ExpressionStatement") {
+      return tree.statements[0].expression;
+    } else {
+      throw new RefactorError(
+        `Can't replace an expression with a node of type ${returnedTree.statements[0].type}`
+      );
+    }
   }
 }
 
