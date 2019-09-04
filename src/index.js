@@ -119,6 +119,7 @@ class RefactorSession {
         return parseScript(result).statements[0];
       } else {
         if (insertion) return copy(insertion);
+        if (isShiftNode(program)) return copy(program);
         return (insertion = parseScript(program).statements[0]);
       }
     };
@@ -193,16 +194,16 @@ class RefactorSession {
           context._replacements.delete(node);
           return newNode;
         }
-        if (context._deletions.has(node)) {
-          context._replacements.delete(node);
-          this.remove();
-        }
         if (context._insertions.has(node)) {
           const insertion = context._insertions.get(node);
           let statementIndex = parent.statements.indexOf(node);
           if (insertion.after) statementIndex++;
           parent.statements.splice(statementIndex, 0, insertion.statement);
-          return;
+          context._insertions.delete(node);
+        }
+        if (context._deletions.has(node)) {
+          context._replacements.delete(node);
+          this.remove();
         }
       }
     });
