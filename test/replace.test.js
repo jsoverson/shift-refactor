@@ -17,6 +17,13 @@ describe("replace", function() {
     refactor.replace(`IdentifierExpression[name="a"]`, `bar()`);
     chai.expect(refactor.ast).to.deep.equal(parse("foo(bar())"));
   });
+  it("should accept a node list as a replacement", () => {
+    let ast = parse(`foo(a)`);
+    const refactor = new RefactorSession(ast);
+    const callExpressions = refactor.query('CallExpression');
+    refactor.replace(callExpressions, "`foo`");
+    chai.expect(refactor.ast).to.deep.equal(parse("`foo`"));
+  });
   it("should be able to pass a function in to replace", () => {
     let ast = parse(`foo(a)`);
     const refactor = new RefactorSession(ast);

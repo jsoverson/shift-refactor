@@ -1,50 +1,25 @@
+
+const { TokenType } = require("shift-parser");
+
+const jsKeywords = Object
+  .values(TokenType)
+  .filter(_ => _.name && _.klass.name === 'Keyword')
+  .map(_ => _.name);
+
 exports.IdGenerator = class IdGenerator {
   constructor(
-    alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    reservedWords = jsKeywords
   ) {
     this.alphabet = alphabet;
     this.current = [-1];
-    this.reservedJSKeywords = new Set([
-      'break',
-      'do',
-      'in',
-      'typeof',
-      'case',
-      'else',
-      'instanceof',
-      'var',
-      'catch',
-      'export',
-      'new',
-      'void',
-      'class',
-      'extends',
-      'return',
-      'while',
-      'const',
-      'finally',
-      'super',
-      'with',
-      'continue',
-      'for',
-      'switch',
-      'yield',
-      'debugger',
-      'function',
-      'this',
-      'default',
-      'if',
-      'throw',
-      'delete',
-      'import',
-      'try'
-    ]);
+    this.reservedWords = new Set(reservedWords);
   }
 
   next() {
     this._increment();
     const nextId = this.current.reduce((acc, code) => acc + this.alphabet[code], "");
-    if (!this.reservedJSKeywords.has(nextId)) {
+    if (!this.reservedWords.has(nextId)) {
       return nextId;
     } else {
       this._increment();

@@ -15,4 +15,14 @@ describe("IdGenerator", function() {
     chai.expect(gen.next()).to.equal("aB");
     chai.expect(gen.next()).to.equal("ba");
   });
+  it("should skip keywords", () => {
+    const gen = new IdGenerator("doD");
+    chai.expect(gen.next()).to.equal("d");
+    chai.expect(gen.next()).to.equal("o");
+    chai.expect(gen.next()).to.equal("D");
+    chai.expect(gen.next()).to.equal("dd");
+    // skips "do"
+    chai.expect(gen.next()).to.equal("dD");
+    chai.expect(gen.next()).to.equal("od");
+  });
 });

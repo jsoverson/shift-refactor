@@ -68,7 +68,7 @@ class RefactorSession {
     if (this.autoCleanup) this.cleanup();
   }
   replace(selector, program) {
-    const nodes = query(this.ast, selector);
+    const nodes = findNodes(this.ast, selector);
 
     const replacement =
       typeof program === "string" ? parseScript(program) : null;
