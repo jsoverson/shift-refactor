@@ -24,7 +24,7 @@
     "babel"
   ],
   "dependencies": {
-    "shift-codegen": "^6.0.0",
+    "@jsoverson/shift-codegen": "^7.0.0",
     "shift-parser": "^7.0.0",
     "shift-query": "^1.0.0",
     "shift-scope": "^4.0.0",

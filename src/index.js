@@ -1,7 +1,7 @@
 const shiftScope = require("shift-scope");
 const { parseScript } = require("shift-parser");
 const traverse = require("shift-traverser");
-const { default: codegen, FormattedCodeGen } = require("shift-codegen");
+const { default: codegen, FormattedCodeGen } = require("@jsoverson/shift-codegen");
 const { default: isValid } = require("shift-validator");
 const Shift = require("shift-ast");
 
