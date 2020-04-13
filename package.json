@@ -1,6 +1,6 @@
 {
   "name": "shift-refactor",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A suite of utilities to query and modify JavaScript source",
   "main": "src/index.js",
   "repository": {
