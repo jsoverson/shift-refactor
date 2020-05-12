@@ -6,7 +6,40 @@ const jsKeywords = Object
   .filter(_ => _.name && _.klass.name === 'Keyword')
   .map(_ => _.name);
 
+const nouns = require('./nouns');
+const adjectives = require('./adjectives');
+const seedrandom = require('seedrandom');
+
 exports.IdGenerator = class IdGenerator {
+  constructor(seed = 0) {
+    this.rng = seedrandom(0);
+  
+  }
+
+  randomNoun() {
+    const index = Math.floor(this.rng() * nouns.length);
+    return nouns[index];
+  }
+
+  randomAdjective() {
+    const index = Math.floor(this.rng() * adjectives.length);
+    return adjectives[index];
+  }
+
+  next() {
+    const noun = this.randomNoun();
+
+    return `${this.randomAdjective()}${noun[0].toUpperCase()}${noun.slice(1)}`;
+  }
+
+  *[Symbol.iterator]() {
+    while (true) {
+      yield this.next();
+    }
+  }
+}
+
+exports.BasicIdGenerator = class BasicIdGenerator {
   constructor(
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
     reservedWords = jsKeywords

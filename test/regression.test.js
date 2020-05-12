@@ -17,4 +17,15 @@ describe("Regression", function() {
       chai.expect(b.length).to.equal(0);
     });
   });
+
+  describe("https://github.com/jsoverson/shift-refactor/issues/7", () => {
+    it("replaceRecursive should not fall into an infinite loop when skipping nodes", () => {
+      let ast = parse(`var a = 2, b = 3;`);
+      const refactor = new RefactorSession(ast);
+      function danger() {
+        refactor.replaceRecursive('VariableDeclarator', node => node);
+      }
+      chai.expect(danger).to.not.throw();
+    });
+  });
 });

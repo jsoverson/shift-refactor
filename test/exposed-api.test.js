@@ -1,5 +1,6 @@
 const { RefactorSession } = require("../src/index.js");
 const { parseScript: parse } = require("shift-parser");
+const Shift = require('shift-ast');
 
 const chai = require("chai");
 
@@ -24,6 +25,35 @@ describe("API", function() {
     const refactor = new RefactorSession(ast);
     const newSource = refactor.print();
     chai.expect(ast).to.deep.equal(parse(newSource));
+  });
+  it(".print() should take any ast", () => {
+    let ast = parse(`var a = 2; function foo(){var a = 4}`);
+    const refactor = new RefactorSession(ast);
+    const newSource = refactor.print(new Shift.LiteralStringExpression({value:"hi"}));
+    chai.expect(newSource).to.equal('"hi"');
+  });
+  it(".closest() should walk up a tree looking for a matching selector", () => {
+    let ast = parse(`var a = 2; function foo(){var b = 4}`);
+    const refactor = new RefactorSession(ast);
+    const innerBinding = refactor.query('BindingIdentifier[name="b"]');
+    const parentStatement = refactor.closest(innerBinding, 'VariableDeclarationStatement');
+    chai.expect(parentStatement.length).to.equal(1);
+  });
+  it(".lookupVariable() should return variable lookup by Identifier node", () => {
+    let ast = parse(`var a = 2; function foo(){var b = 4}`);
+    const refactor = new RefactorSession(ast);
+    const innerBinding = refactor.query('BindingIdentifier[name="b"]');
+    const lookup = refactor.lookupVariable(innerBinding);
+    chai.expect(lookup).to.be.ok; 
+    chai.expect(lookup.declarations.length).to.equal(1);
+  });
+  it(".lookupScope() should return variable scope", () => {
+    let ast = parse(`var a = 2; function foo(){var b = 4}`);
+    const refactor = new RefactorSession(ast);
+    const innerBinding = refactor.query('BindingIdentifier[name="b"]');
+    const lookup = refactor.lookupScope(innerBinding);
+    chai.expect(lookup).to.be.ok; 
+    chai.expect(lookup.astNode).to.equal(ast.statements[1]);
   });
   it("should expose .cleanup()", () => {
     let ast = parse(``);
