@@ -1,8 +1,9 @@
-const { RefactorSession } = require("../src/index.js");
-const { parseScript: parse } = require("shift-parser");
-const { IdGenerator } = require('../src/id-generator');
+import { RefactorSession } from "../src/index";
+import { parseScript as parse } from "shift-parser";
+import Shift from 'shift-ast';
 
-const chai = require("chai");
+import chai from "chai";
+import { IdGenerator } from "../src/id-generator";
 
 describe("util", function() {
   describe("computedToStatic", () => {

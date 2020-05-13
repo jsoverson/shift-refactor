@@ -3,14 +3,16 @@ const { TokenType } = require("shift-parser");
 
 const jsKeywords = Object
   .values(TokenType)
-  .filter(_ => _.name && _.klass.name === 'Keyword')
-  .map(_ => _.name);
+  .filter((_:any) => _.name && _.klass.name === 'Keyword')
+  .map((_:any) => _.name);
 
 const nouns = require('./nouns');
 const adjectives = require('./adjectives');
 const seedrandom = require('seedrandom');
 
-exports.IdGenerator = class IdGenerator {
+export class IdGenerator {
+  rng: seedrandom.prng;
+
   constructor(seed = 0) {
     this.rng = seedrandom(0);
   
@@ -39,14 +41,15 @@ exports.IdGenerator = class IdGenerator {
   }
 }
 
-exports.BasicIdGenerator = class BasicIdGenerator {
-  constructor(
-    alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    reservedWords = jsKeywords
-  ) {
-    this.alphabet = alphabet;
+export class BasicIdGenerator {
+  alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  reservedWords: Set<string> = new Set(jsKeywords);
+  current: number[];
+  
+  constructor(alphabet: string, reservedWords?: string[]) {
+    if (alphabet) this.alphabet = alphabet;
+    if (reservedWords) this.reservedWords = new Set(reservedWords);
     this.current = [-1];
-    this.reservedWords = new Set(reservedWords);
   }
 
   next() {

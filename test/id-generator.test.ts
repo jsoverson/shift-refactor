@@ -1,4 +1,4 @@
-const { BasicIdGenerator } = require("../src/id-generator");
+import { BasicIdGenerator } from "../src/id-generator";
 
 const chai = require("chai");
 

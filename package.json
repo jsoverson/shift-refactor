@@ -25,6 +25,9 @@
   ],
   "dependencies": {
     "@jsoverson/shift-codegen": "^7.0.0",
+    "debug": "^4.1.1",
+    "seedrandom": "^3.0.5",
+    "shift-ast": "^6.0.1",
     "shift-parser": "^7.0.0",
     "shift-query": "^1.0.0",
     "shift-scope": "^4.0.0",
@@ -32,16 +35,27 @@
     "shift-validator": "^4.0.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/debug": "^4.1.5",
+    "@types/mocha": "^7.0.2",
+    "@types/multimap": "^1.1.1",
+    "@types/node": "^13.13.5",
+    "@types/seedrandom": "^2.4.28",
     "chai": "^4.2.0",
     "eslint": "^6.1.0",
-    "mocha": "^5.2.0",
+    "mocha": "^7.1.2",
     "prettier": "^1.18.2",
-    "shift-ast": "^6.0.0"
+    "ts-node": "^8.10.1",
+    "typescript": "^3.9.2"
   },
   "scripts": {
-    "test": "mocha test",
-    "lint": "eslint src test",
-    "format": "prettier --write 'src/**/*.js' 'test/**/*.js'"
+    "build": "tsc",
+    "compile": "npm run clean && tsc --declaration",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run compile",
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
+    "watch": "tsc -w",
+    "test": "mocha"
   },
   "author": "Jarrod Overson",
   "license": "Apache-2.0"

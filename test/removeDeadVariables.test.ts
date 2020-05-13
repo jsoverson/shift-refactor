@@ -1,8 +1,8 @@
-const { RefactorSession } = require("../src/index.js");
-const { parseScript: parse } = require("shift-parser");
+import { RefactorSession } from "../src/index";
+import { parseScript as parse } from "shift-parser";
+import Shift from 'shift-ast';
 
-const chai = require("chai");
-
+import chai from "chai";
 describe("removeDeadVariables", function() {
   it("should remove unused variables", () => {
     let ast = parse(`var foo = 1; let bar = 2; const baz = 3; var FOO = 'one'; let BAR = 'two'; const BAZ = 'three'; x = FOO + BAR + BAZ;`);
@@ -48,6 +48,7 @@ describe("removeDeadVariables", function() {
     `);
     const refactor = new RefactorSession(ast);
     // need lookup first, scope lookup is lazy.
+    // @ts-ignore
     refactor.lookupVariable(ast.statements[0].declaration.declarators[0].binding);
     refactor.delete(ast.statements[2]);
     refactor.removeDeadVariables();

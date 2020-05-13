@@ -1,0 +1,1 @@
+declare module "@jsoverson/shift-codegen";

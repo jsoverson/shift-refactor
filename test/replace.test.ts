@@ -1,8 +1,8 @@
-const { RefactorSession } = require("../src/index.js");
-const { parseScript: parse } = require("shift-parser");
-const Shift = require("shift-ast");
+import { RefactorSession } from "../src/index";
+import { parseScript as parse } from "shift-parser";
+import Shift from 'shift-ast';
 
-const chai = require("chai");
+import chai from "chai";
 
 describe("replace", function() {
   it("should replace statements", () => {
@@ -29,7 +29,7 @@ describe("replace", function() {
     const refactor = new RefactorSession(ast);
     refactor.replace(
       `IdentifierExpression[name="a"]`,
-      node => new Shift.IdentifierExpression({ name: node.name + "b" })
+      (      node: { name: string; }) => new Shift.IdentifierExpression({ name: node.name + "b" })
     );
     chai.expect(refactor.ast).to.deep.equal(parse("foo(ab)"));
   });
@@ -38,7 +38,7 @@ describe("replace", function() {
     const refactor = new RefactorSession(ast);
     refactor.replace(
       `IdentifierExpression[name="a"]`,
-      node => `"${node.name}"`
+      (      node: { name: any; }) => `"${node.name}"`
     );
     chai.expect(refactor.ast).to.deep.equal(parse("foo('a')"));
   });
@@ -47,7 +47,7 @@ describe("replace", function() {
     const refactor = new RefactorSession(ast);
     refactor.replace(
       `IdentifierExpression[name="a"]`,
-      node => `true`
+      (      node: any) => `true`
     );
     chai.expect(refactor.ast).to.deep.equal(parse("foo(true)"));
   });
@@ -56,7 +56,7 @@ describe("replace", function() {
     const refactor = new RefactorSession(ast);
     refactor.replace(
       `ExpressionStatement[expression.type="CallExpression"]`,
-      node => `console.log(test)`
+      (      node: any) => `console.log(test)`
     );
     chai.expect(refactor.ast).to.deep.equal(parse("a;console.log(test);b;"));
   });
