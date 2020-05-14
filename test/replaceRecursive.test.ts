@@ -1,8 +1,8 @@
 import { RefactorSession } from "../src/index";
 import { parseScript as parse } from "shift-parser";
-import Shift from 'shift-ast';
 
 import chai from "chai";
+import { StaticMemberExpression } from "shift-ast";
 describe("replaceRecursive", function() {
   it("should replace until the query is empty", () => {
     let ast = parse(`a["b"]["c"]`);
@@ -10,7 +10,7 @@ describe("replaceRecursive", function() {
     refactor.replaceRecursive(
       `ComputedMemberExpression[expression.type="LiteralStringExpression"]`,
       (      node: { object: any; expression: { value: any; }; }) =>
-        new Shift.StaticMemberExpression({
+        new StaticMemberExpression({
           object: node.object,
           property: node.expression.value
         })

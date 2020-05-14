@@ -1,8 +1,8 @@
-import { RefactorSession } from "../src/index";
-import { parseScript as parse } from "shift-parser";
-import Shift from 'shift-ast';
-
 import chai from "chai";
+import { IdentifierExpression } from "shift-ast";
+import { parseScript as parse } from "shift-parser";
+import { RefactorSession } from "../src/index";
+
 
 describe("replace", function() {
   it("should replace statements", () => {
@@ -29,7 +29,7 @@ describe("replace", function() {
     const refactor = new RefactorSession(ast);
     refactor.replace(
       `IdentifierExpression[name="a"]`,
-      (      node: { name: string; }) => new Shift.IdentifierExpression({ name: node.name + "b" })
+      (      node: { name: string; }) => new IdentifierExpression({ name: node.name + "b" })
     );
     chai.expect(refactor.ast).to.deep.equal(parse("foo(ab)"));
   });

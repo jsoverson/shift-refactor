@@ -27,12 +27,12 @@
     "@jsoverson/shift-codegen": "^7.0.0",
     "debug": "^4.1.1",
     "seedrandom": "^3.0.5",
-    "shift-ast": "^6.0.1",
+    "shift-ast": "^6.0.0",
     "shift-parser": "^7.0.0",
     "shift-query": "^1.0.0",
     "shift-scope": "^4.0.0",
     "shift-traverser": "^1.0.0",
-    "shift-validator": "^4.0.0"
+    "shift-validator": "^5.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",

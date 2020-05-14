@@ -18,7 +18,11 @@ import Shift, {
   ComputedMemberAssignmentTarget,
   ComputedPropertyName,
   Script,
-  FormalParameters
+  FormalParameters,
+  StaticPropertyName,
+  StaticMemberAssignmentTarget,
+  StaticMemberExpression,
+  LiteralBooleanExpression,
 } from 'shift-ast';
 import { parseScript } from 'shift-parser';
 import shiftScope, { Scope, ScopeLookup, Variable, Reference, Declaration } from 'shift-scope';
@@ -91,6 +95,11 @@ export class RefactorSession {
 
     this._rebuildParentMap();
   }
+
+  static parse(src:string): Script {
+    return parseScript(src);
+  }
+
   _rebuildParentMap() {
     this._parentMap = new WeakMap();
     traverser.traverse(this.ast, {
@@ -142,21 +151,20 @@ export class RefactorSession {
         let name = decl instanceof VariableDeclarator ? decl.binding : decl.name;
         const lookup = this.lookupVariable(name);
 
-        const reads = lookup.references.filter(
-          (ref: Reference) => { 
-            const isRead = ref.accessibility.isRead;
-            const isBoth = ref.accessibility.isReadWrite;
-            if (isBoth) {
-              // if we're an UpdateExpression
-              const immediateParent = this.findParent(ref.node);
-              if (!immediateParent) return false;
-              const nextParent = this.findParent(immediateParent);
-              if (isStatement(nextParent)) return true;
-            } else {
-              return isRead;
-            }
+        const reads = lookup.references.filter((ref: Reference) => {
+          const isRead = ref.accessibility.isRead;
+          const isBoth = ref.accessibility.isReadWrite;
+          if (isBoth) {
+            // if we're an UpdateExpression
+            const immediateParent = this.findParent(ref.node);
+            if (!immediateParent) return false;
+            const nextParent = this.findParent(immediateParent);
+            if (isStatement(nextParent)) return false;
+            else return true;
+          } else {
+            return isRead;
           }
-        );
+        });
 
         if (reads.length === 0) {
           lookup.references.forEach((ref: Reference) => {
@@ -293,7 +301,7 @@ export class RefactorSession {
       if (!(node instanceof VariableDeclarator)) {
         debug('Non-VariableDeclarator passed to unshorten(). Skipping.');
         return;
-      };
+      }
       const from = node.binding;
       const to = node.init;
       if (!(to instanceof IdentifierExpression)) {
@@ -314,7 +322,7 @@ export class RefactorSession {
     this._deletions.add(node);
   }
 
-  _queueReplacement(from: ShiftNode, to:ShiftNode) {
+  _queueReplacement(from: ShiftNode, to: ShiftNode) {
     this.dirty = true;
     this._replacements.set(from, to);
   }
@@ -361,7 +369,7 @@ export class RefactorSession {
         if (_this._insertions.has(node)) {
           if (isStatement(node)) {
             const insertion = _this._insertions.get(node);
-            if ("statements" in parent) {
+            if ('statements' in parent) {
               let statementIndex = parent.statements.indexOf(node);
               if (insertion.after) statementIndex++;
               parent.statements.splice(statementIndex, 0, insertion.statement);
@@ -443,34 +451,49 @@ export class RefactorSession {
 
   /* Util functions : common refactors that use methods above */
   convertComputedToStatic() {
-    this.replaceRecursive(`ComputedMemberExpression[expression.type="LiteralStringExpression"]`, (node: ComputedMemberExpression) => {
-      if ((node.expression instanceof LiteralStringExpression)) {
-        const replacement = new Shift.StaticMemberExpression({
-          object: node.object,
-          property: node.expression.value,
-        });
-        return isValid(replacement) ? replacement : node;
-      }
-    });
+    this.replaceRecursive(
+      `ComputedMemberExpression[expression.type="LiteralStringExpression"]`,
+      (node: ComputedMemberExpression) => {
+        if (node.expression instanceof LiteralStringExpression) {
+          const replacement = new StaticMemberExpression({
+            object: node.object,
+            property: node.expression.value,
+          });
+          return isValid(replacement) ? replacement : node;
+        } else {
+          return node;
+        }
+      },
+    );
 
-    this.replaceRecursive(`ComputedMemberAssignmentTarget[expression.type="LiteralStringExpression"]`, (node: ComputedMemberAssignmentTarget) => {
-      if ((node.expression instanceof LiteralStringExpression)) {
-        const replacement = new Shift.StaticMemberAssignmentTarget({
-        object: node.object,
-        property: node.expression.value,
-      });
-      return isValid(replacement) ? replacement : node;
-    }
-    });
+    this.replaceRecursive(
+      `ComputedMemberAssignmentTarget[expression.type="LiteralStringExpression"]`,
+      (node: ComputedMemberAssignmentTarget) => {
+        if (node.expression instanceof LiteralStringExpression) {
+          const replacement = new StaticMemberAssignmentTarget({
+            object: node.object,
+            property: node.expression.value,
+          });
+          return isValid(replacement) ? replacement : node;
+        } else {
+          return node;
+        }
+      },
+    );
 
-    this.replaceRecursive(`ComputedPropertyName[expression.type="LiteralStringExpression"]`, (node: ComputedPropertyName) => {
-      if ((node.expression instanceof LiteralStringExpression)) {
-        const replacement = new Shift.StaticPropertyName({
-          value: node.expression.value,
-        });
-        return isValid(replacement) ? replacement : node;
-      }
-    });
+    this.replaceRecursive(
+      `ComputedPropertyName[expression.type="LiteralStringExpression"]`,
+      (node: ComputedPropertyName) => {
+        if (node.expression instanceof LiteralStringExpression) {
+          const replacement = new StaticPropertyName({
+            value: node.expression.value,
+          });
+          return isValid(replacement) ? replacement : node;
+        } else {
+          return node;
+        }
+      },
+    );
 
     return this;
   }
@@ -482,11 +505,11 @@ export class RefactorSession {
   expandBoolean() {
     this.replace(
       `UnaryExpression[operator="!"][operand.value=0]`,
-      () => new Shift.LiteralBooleanExpression({ value: true }),
+      () => new LiteralBooleanExpression({ value: true }),
     );
     this.replace(
       `UnaryExpression[operator="!"][operand.value=1]`,
-      () => new Shift.LiteralBooleanExpression({ value: false }),
+      () => new LiteralBooleanExpression({ value: false }),
     );
     return this;
   }
@@ -503,8 +526,8 @@ export class RefactorSession {
 function extractStatement(tree: Script) {
   // catch the case where a string was parsed alone and read as a directive.
   if (tree.directives.length > 0) {
-    return new Shift.ExpressionStatement({
-      expression: new Shift.LiteralStringExpression({
+    return new ExpressionStatement({
+      expression: new LiteralStringExpression({
         value: tree.directives[0].rawValue,
       }),
     });
@@ -516,7 +539,7 @@ function extractStatement(tree: Script) {
 function extractExpression(tree: Script) {
   // catch the case where a string was parsed alone and read as a directive.
   if (tree.directives.length > 0) {
-    return new Shift.LiteralStringExpression({
+    return new LiteralStringExpression({
       value: tree.directives[0].rawValue,
     });
   } else {
@@ -532,7 +555,7 @@ function renameScope(scope: Scope, idGenerator: IterableIterator<string>, parent
   scope.variableList.forEach(variable => {
     if (variable.declarations.length === 0) return;
     const nextId = idGenerator.next();
-    const isParam = variable.declarations.find((_) => _.type.name === 'Parameter');
+    const isParam = variable.declarations.find(_ => _.type.name === 'Parameter');
     let newName = `$$${nextId}`;
     if (isParam) {
       const parent = parentMap.get(isParam.node) as FormalParameters;
@@ -544,4 +567,3 @@ function renameScope(scope: Scope, idGenerator: IterableIterator<string>, parent
   });
   scope.children.forEach(_ => renameScope(_, idGenerator, parentMap));
 }
-

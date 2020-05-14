@@ -1,14 +1,20 @@
 import { RefactorSession } from "../src/index";
 import { parseScript as parse } from "shift-parser";
-import Shift from 'shift-ast';
 
 import chai from "chai";
+import { LiteralStringExpression } from "shift-ast";
 
 describe("API", function() {
   it("should expose.query()", () => {
     const refactor = new RefactorSession(`function foo(){}\nfoo();`);
     const nodes = refactor.query(`FunctionDeclaration[name.name="foo"]`);
     chai.expect(nodes.length).to.equal(1);
+  });
+  it("should expose .parse()", () => {
+    const src = `var a = 2; function foo(){var a = 4}`;
+    const ast = parse(src);
+    const r_ast = RefactorSession.parse(src);
+    chai.expect(r_ast).to.deep.equal(ast);
   });
   it("should expose .queryFrom()", () => {
     let ast = parse(`var a = 2; function foo(){var a = 4}`);
@@ -29,7 +35,7 @@ describe("API", function() {
   it(".print() should take any ast", () => {
     let ast = parse(`var a = 2; function foo(){var a = 4}`);
     const refactor = new RefactorSession(ast);
-    const newSource = refactor.print(new Shift.LiteralStringExpression({value:"hi"}));
+    const newSource = refactor.print(new LiteralStringExpression({value:"hi"}));
     chai.expect(newSource).to.equal('"hi"');
   });
   it(".closest() should walk up a tree looking for a matching selector", () => {

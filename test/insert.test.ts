@@ -3,6 +3,8 @@ import { parseScript as parse } from "shift-parser";
 import Shift from 'shift-ast';
 
 import chai from "chai";
+import { IdentifierExpression } from "shift-ast";
+import { DebuggerStatement } from "shift-ast";
 
 describe("insert", function() {
   describe("insertBefore", () => {
@@ -32,7 +34,7 @@ describe("insert", function() {
       const refactor = new RefactorSession(ast);
       refactor.insertBefore(
         `ExpressionStatement[expression.type="CallExpression"]`,
-        () => new Shift.DebuggerStatement()
+        () => new DebuggerStatement()
       );
       chai
         .expect(refactor.ast)
@@ -44,7 +46,7 @@ describe("insert", function() {
       const shouldThrow = () => {
         refactor.insertBefore(
           `ExpressionStatement[expression.type="CallExpression"]`,
-          () => new Shift.IdentifierExpression({ name: "breaks" })
+          () => new IdentifierExpression({ name: "breaks" })
         );
       };
       chai.expect(shouldThrow).to.throw(RefactorError);

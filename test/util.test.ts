@@ -1,6 +1,5 @@
 import { RefactorSession } from "../src/index";
 import { parseScript as parse } from "shift-parser";
-import Shift from 'shift-ast';
 
 import chai from "chai";
 import { IdGenerator } from "../src/id-generator";
