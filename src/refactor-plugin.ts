@@ -1,5 +1,4 @@
 import { RefactorSession } from ".";
-import { RefactorCommonPlugin } from "./refactor-plugin-common";
 
 export abstract class RefactorPlugin {
   abstract name: string;
