@@ -1,12 +1,11 @@
-import { RefactorSession } from ".";
-import { ComputedMemberExpression, LiteralStringExpression, StaticMemberExpression, ComputedMemberAssignmentTarget, StaticMemberAssignmentTarget, ComputedPropertyName, StaticPropertyName, VariableDeclarator, IdentifierExpression, LiteralBooleanExpression, FunctionDeclaration, ClassDeclaration } from "shift-ast";
 import debug from "debug";
+import { ClassDeclaration, ComputedMemberAssignmentTarget, ComputedMemberExpression, ComputedPropertyName, FunctionDeclaration, IdentifierExpression, LiteralBooleanExpression, LiteralStringExpression, StaticMemberAssignmentTarget, StaticMemberExpression, StaticPropertyName, VariableDeclarator } from "shift-ast";
 import { Declaration, Reference, Variable } from "shift-scope";
-import { MemorableIdGenerator, IdGenerator } from "./id-generator";
 import { default as isValid } from 'shift-validator';
-import { SelectorOrNode } from "./types";
-import { findNodes, isStatement, isLiteral, renameScope } from "./util";
+import { IdGenerator, MemorableIdGenerator } from "./id-generator";
 import { RefactorPlugin } from "./refactor-plugin";
+import { SelectorOrNode } from "./types";
+import { findNodes, isLiteral, isStatement, renameScope } from "./util";
 
 declare module "." {
   interface RefactorSession {
