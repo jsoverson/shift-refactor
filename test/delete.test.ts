@@ -1,5 +1,5 @@
-import { RefactorSession } from "../src/index";
 import { parseScript as parse } from "shift-parser";
+import { RefactorSession } from "../src/index";
 
 const chai = require("chai");
 

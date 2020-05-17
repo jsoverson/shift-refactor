@@ -10,12 +10,16 @@ const nouns = require('./nouns');
 const adjectives = require('./adjectives');
 const seedrandom = require('seedrandom');
 
-export class IdGenerator {
+export interface IdGenerator extends Iterator<string> {
+  next(): IteratorResult<string>;
+}
+
+export class MemorableIdGenerator implements IdGenerator {
   rng: seedrandom.prng;
 
   constructor(seed = 0) {
-    this.rng = seedrandom(0);
-  
+    this.rng = seedrandom(seed);
+
   }
 
   randomNoun() {
@@ -31,7 +35,10 @@ export class IdGenerator {
   next() {
     const noun = this.randomNoun();
 
-    return `${this.randomAdjective()}${noun[0].toUpperCase()}${noun.slice(1)}`;
+    return {
+      done: false,
+      value: `${this.randomAdjective()}${noun[0].toUpperCase()}${noun.slice(1)}`
+    }
   }
 
   *[Symbol.iterator]() {
@@ -41,7 +48,7 @@ export class IdGenerator {
   }
 }
 
-export class BasicIdGenerator {
+export class BasicIdGenerator implements IdGenerator {
   alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   reservedWords: Set<string> = new Set(jsKeywords);
   current: number[];
@@ -56,10 +63,16 @@ export class BasicIdGenerator {
     this._increment();
     const nextId = this.current.reduce((acc, code) => acc + this.alphabet[code], "");
     if (!this.reservedWords.has(nextId)) {
-      return nextId;
+      return {
+        done: false,
+        value: nextId
+      };
     } else {
       this._increment();
-      return this.current.reduce((acc, code) => acc + this.alphabet[code], "");
+      return {
+        done: false,
+        value: this.current.reduce((acc, code) => acc + this.alphabet[code], "")
+      };
     }
   }
 

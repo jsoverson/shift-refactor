@@ -1,8 +1,8 @@
-import { RefactorSession } from "../src/index";
-import { parseScript as parse } from "shift-parser";
-
 import chai from "chai";
 import { StaticMemberExpression } from "shift-ast";
+import { parseScript as parse } from "shift-parser";
+import { RefactorSession } from "../src/index";
+
 describe("replaceRecursive", function() {
   it("should replace until the query is empty", () => {
     let ast = parse(`a["b"]["c"]`);

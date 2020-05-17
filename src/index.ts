@@ -1,86 +1,25 @@
 import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
-import Shift, {
-  Literal,
-  ShiftNode,
-  Statement,
-  VariableDeclarator,
-  BindingIdentifier,
-  IdentifierExpression,
-  FunctionDeclaration,
-  ClassDeclaration,
-  BlockStatement,
-  Expression,
-  ExpressionStatement,
-  AssignmentTargetIdentifier,
-  ComputedMemberExpression,
-  ArrayExpression,
-  LiteralStringExpression,
-  ComputedMemberAssignmentTarget,
-  ComputedPropertyName,
-  Script,
-  FormalParameters,
-  StaticPropertyName,
-  StaticMemberAssignmentTarget,
-  StaticMemberExpression,
-  LiteralBooleanExpression,
-} from 'shift-ast';
+import DEBUG from 'debug';
+import { BindingIdentifier, ClassDeclaration, ComputedMemberAssignmentTarget, ComputedMemberExpression, ComputedPropertyName, Expression, ExpressionStatement, FormalParameters, FunctionDeclaration, IdentifierExpression, LiteralBooleanExpression, LiteralStringExpression, Script, Node, Statement, StaticMemberAssignmentTarget, StaticMemberExpression, StaticPropertyName, VariableDeclarator, LiteralInfinityExpression, LiteralNumericExpression, LiteralRegExpExpression, LiteralNullExpression } from 'shift-ast';
 import { parseScript } from 'shift-parser';
-import shiftScope, { Scope, ScopeLookup, Variable, Reference, Declaration } from 'shift-scope';
+import shiftScope, { Declaration, Reference, Scope, ScopeLookup, Variable } from 'shift-scope';
 import traverser from 'shift-traverser';
 import { default as isValid } from 'shift-validator';
-import DEBUG from 'debug';
+import { isString, findNodes, isFunction, isShiftNode, isStatement, copy, isArray, extractStatement, extractExpression } from './util';
+import { SelectorOrNode, Replacer, RefactorError } from './types';
+import { RefactorCommonPlugin } from "./refactor-plugin-common";
+import { RefactorPlugin } from './refactor-plugin';
 
 const debug = DEBUG('shift-refactor');
 
-const { IdGenerator } = require('./id-generator');
-
 const { query } = require('shift-query');
 
-function copy(object: any) {
-  return JSON.parse(JSON.stringify(object));
-}
-
-function isString(input: any): input is string {
-  return typeof input === 'string';
-}
-function isFunction(input: any): input is Function {
-  return typeof input === 'function';
-}
-function isArray(input: any): input is any[] {
-  return Array.isArray(input);
-}
-function isShiftNode(input: any): input is ShiftNode {
-  return input && typeof input.type !== 'undefined';
-}
-function isStatement(input: any): input is Statement {
-  return input && input.type && input.type.match(/(Statement|Declaration)$/);
-}
-function isExpression(input: any): input is Expression {
-  return !isStatement(input);
-}
-function isLiteral(input: any): input is Literal {
-  return input && input.type && input.type.match(/^Literal/);
-}
-
-export class RefactorError extends Error {}
-
-type SelectorOrNode = string | ShiftNode | ShiftNode[];
-
-function findNodes(ast: ShiftNode, input: SelectorOrNode) {
-  if (isString(input)) return query(ast, input);
-  else if (isArray(input)) return input;
-  else if (isShiftNode(input)) return [input];
-  else return [];
-}
-
-type Replacer = Function | ShiftNode | string;
-
 export class RefactorSession {
-  ast: ShiftNode;
+  ast: Node;
   autoCleanup = true;
   dirty = false;
   _scopeMap = new WeakMap();
-  _parentMap = new WeakMap<ShiftNode, ShiftNode>();
+  _parentMap = new WeakMap<Node, Node>();
 
   _replacements = new WeakMap();
   _deletions = new WeakSet();
@@ -88,12 +27,18 @@ export class RefactorSession {
 
   _lookupTable: ScopeLookup | undefined;
 
-  constructor(ast: string | ShiftNode, { autoCleanup = true } = {}) {
+  constructor(ast: string | Node, { autoCleanup = true } = {}) {
     if (isString(ast)) ast = parseScript(ast);
     this.ast = ast;
     this.autoCleanup = autoCleanup;
 
-    this._rebuildParentMap();
+    this._rebuildParentMap(); 
+    this.use(RefactorCommonPlugin);
+  }
+
+  use<T extends RefactorPlugin>(Plugin: new(session:RefactorSession) => T) {
+    const plugin = new Plugin(this);
+    plugin.register();
   }
 
   static parse(src:string): Script {
@@ -103,7 +48,7 @@ export class RefactorSession {
   _rebuildParentMap() {
     this._parentMap = new WeakMap();
     traverser.traverse(this.ast, {
-      enter: (node: ShiftNode, parent: ShiftNode) => {
+      enter: (node: Node, parent: Node) => {
         this._parentMap.set(node, parent);
       },
     });
@@ -114,7 +59,7 @@ export class RefactorSession {
 
     const nodes = findNodes(this.ast, selector);
 
-    nodes.forEach((node: ShiftNode) => {
+    nodes.forEach((node: Node) => {
       if (node instanceof VariableDeclarator) node = node.binding;
       const lookup = lookupTable.variableMap.get(node);
       if (!lookup) return;
@@ -130,71 +75,11 @@ export class RefactorSession {
     lookup.references.forEach(ref => ((ref.node as IdentifierExpression).name = newName));
   }
 
-  massRename(namePairs: string[][]) {
-    if (!this._lookupTable) this.getLookupTable();
-    namePairs.forEach(([from, to]) => {
-      this.lookupVariableByName(from).forEach((lookup: Variable) => this._renameInPlace(lookup, to));
-    });
-  }
-
   delete(selector: SelectorOrNode) {
     const nodes = findNodes(this.ast, selector);
     if (nodes.length > 0) {
-      nodes.forEach((node: ShiftNode) => this._queueDeletion(node));
+      nodes.forEach((node: Node) => this._queueDeletion(node));
     }
-    if (this.autoCleanup) this.cleanup();
-    return this;
-  }
-  removeDeadVariables() {
-    this.query('VariableDeclarator, FunctionDeclaration, ClassDeclaration').forEach(
-      (decl: VariableDeclarator | FunctionDeclaration | ClassDeclaration) => {
-        let name = decl instanceof VariableDeclarator ? decl.binding : decl.name;
-        const lookup = this.lookupVariable(name);
-
-        const reads = lookup.references.filter((ref: Reference) => {
-          const isRead = ref.accessibility.isRead;
-          const isBoth = ref.accessibility.isReadWrite;
-          if (isBoth) {
-            // if we're an UpdateExpression
-            const immediateParent = this.findParent(ref.node);
-            if (!immediateParent) return false;
-            const nextParent = this.findParent(immediateParent);
-            if (isStatement(nextParent)) return false;
-            else return true;
-          } else {
-            return isRead;
-          }
-        });
-
-        if (reads.length === 0) {
-          lookup.references.forEach((ref: Reference) => {
-            const node = ref.node;
-            const immediateParent = this.findParent(node);
-            if (!immediateParent) return;
-            const contextualParent = this.findParent(immediateParent);
-
-            if (['VariableDeclarator', 'FunctionDeclaration', 'ClassDeclaration'].indexOf(immediateParent.type) > -1) {
-              this.delete(immediateParent);
-            } else if (immediateParent.type === 'UpdateExpression' && isStatement(contextualParent)) {
-              this.delete(contextualParent);
-            } else if (node.type === 'AssignmentTargetIdentifier') {
-              if (immediateParent.type === 'AssignmentExpression') {
-                if (isLiteral(immediateParent.expression)) {
-                  if (isStatement(contextualParent)) {
-                    this.delete(contextualParent);
-                  } else {
-                    this.replace(immediateParent, immediateParent.expression);
-                  }
-                } else {
-                  this.replace(immediateParent, immediateParent.expression);
-                }
-              }
-            }
-          });
-          this.delete(decl);
-        }
-      },
-    );
     if (this.autoCleanup) this.cleanup();
     return this;
   }
@@ -204,7 +89,7 @@ export class RefactorSession {
 
     const replacementScript = typeof replacer === 'string' ? parseScript(replacer) : null;
 
-    const replaced = nodes.map((node: ShiftNode) => {
+    const replaced = nodes.map((node: Node) => {
       let replacement = null;
       if (isFunction(replacer)) {
         const rv = replacer(node);
@@ -253,8 +138,8 @@ export class RefactorSession {
   _insert(selector: SelectorOrNode, replacer: Replacer, after = false) {
     const nodes = findNodes(this.ast, selector);
 
-    let insertion: ShiftNode | null = null;
-    let getInsertion = (program: Replacer, node: ShiftNode) => {
+    let insertion: Node | null = null;
+    let getInsertion = (program: Replacer, node: Node) => {
       if (isFunction(program)) {
         const result = program(node);
         if (isShiftNode(result)) return result;
@@ -266,7 +151,7 @@ export class RefactorSession {
       }
     };
 
-    nodes.forEach((node: ShiftNode) => {
+    nodes.forEach((node: Node) => {
       if (!isStatement(node)) throw new RefactorError('Can only insert before or after Statements or Declarations');
       this.dirty = true;
       const toInsert = getInsertion(replacer, node);
@@ -281,7 +166,7 @@ export class RefactorSession {
     return this;
   }
 
-  findParent(node: ShiftNode) {
+  findParent(node: Node) {
     return this._parentMap.get(node);
   }
 
@@ -293,36 +178,12 @@ export class RefactorSession {
     return this._insert(selector, replacer, true);
   }
 
-  unshorten(selector: SelectorOrNode) {
-    const lookupTable = this.getLookupTable();
-    const nodes = findNodes(this.ast, selector);
-
-    nodes.forEach((node: ShiftNode) => {
-      if (!(node instanceof VariableDeclarator)) {
-        debug('Non-VariableDeclarator passed to unshorten(). Skipping.');
-        return;
-      }
-      const from = node.binding;
-      const to = node.init;
-      if (!(to instanceof IdentifierExpression)) {
-        debug('Tried to unshorten() Declarator with a non-IdentifierExpression. Skipping.');
-        return;
-      }
-      const lookup = lookupTable.variableMap.get(from);
-      lookup[0].declarations.forEach((decl: Declaration) => (decl.node.name = to.name));
-      lookup[0].references.forEach((ref: Reference) => (ref.node.name = to.name));
-      this._queueDeletion(node);
-    });
-    if (this.autoCleanup) this.cleanup();
-    return this;
-  }
-
-  _queueDeletion(node: ShiftNode) {
+  _queueDeletion(node: Node) {
     this.dirty = true;
     this._deletions.add(node);
   }
 
-  _queueReplacement(from: ShiftNode, to: ShiftNode) {
+  _queueReplacement(from: Node, to: Node) {
     this.dirty = true;
     this._replacements.set(from, to);
   }
@@ -353,11 +214,15 @@ export class RefactorSession {
     this.dirty = true;
   }
 
+  validate() {
+    return isValid(this.ast);
+  }
+
   cleanup() {
     if (!this.dirty) return;
     const _this = this;
     const result = traverser.replace(this.ast, {
-      leave: function(node: ShiftNode, parent: ShiftNode) {
+      leave: function(node: Node, parent: Node) {
         if (node.type === 'VariableDeclarationStatement') {
           if (node.declaration.declarators.length === 0) return this.remove();
         }
@@ -396,14 +261,14 @@ export class RefactorSession {
     return query(this.ast, selector);
   }
 
-  queryFrom(astNodes: ShiftNode | ShiftNode[], selector: string) {
+  queryFrom(astNodes: Node | Node[], selector: string) {
     return isArray(astNodes) ? astNodes.map(node => query(node, selector)).flat() : query(astNodes, selector);
   }
 
   closest(originSelector: SelectorOrNode, closestSelector: string) {
     const nodes = findNodes(this.ast, originSelector);
 
-    const recurse = (node: ShiftNode, selector: string): ShiftNode[] => {
+    const recurse = (node: Node, selector: string): Node[] => {
       const parent = this.findParent(node);
       if (!parent) return [];
       const matches = query(parent, selector);
@@ -411,7 +276,7 @@ export class RefactorSession {
       else return recurse(parent, selector);
     };
 
-    return nodes.flatMap((node: ShiftNode) => recurse(node, closestSelector));
+    return nodes.flatMap((node: Node) => recurse(node, closestSelector));
   }
 
   lookupScope(variableLookup: ScopeLookup) {
@@ -422,7 +287,7 @@ export class RefactorSession {
     return this._scopeMap.get(variableLookup);
   }
 
-  lookupVariable(node: ShiftNode) {
+  lookupVariable(node: Node) {
     const lookupTable = this.getLookupTable();
     if (isArray(node)) node = node[0];
 
@@ -445,125 +310,9 @@ export class RefactorSession {
     return Array.from(varSet) as Variable[];
   }
 
-  print(ast?: ShiftNode) {
+  print(ast?: Node) {
     return codegen(ast || this.ast, new FormattedCodeGen());
   }
 
-  /* Util functions : common refactors that use methods above */
-  convertComputedToStatic() {
-    this.replaceRecursive(
-      `ComputedMemberExpression[expression.type="LiteralStringExpression"]`,
-      (node: ComputedMemberExpression) => {
-        if (node.expression instanceof LiteralStringExpression) {
-          const replacement = new StaticMemberExpression({
-            object: node.object,
-            property: node.expression.value,
-          });
-          return isValid(replacement) ? replacement : node;
-        } else {
-          return node;
-        }
-      },
-    );
-
-    this.replaceRecursive(
-      `ComputedMemberAssignmentTarget[expression.type="LiteralStringExpression"]`,
-      (node: ComputedMemberAssignmentTarget) => {
-        if (node.expression instanceof LiteralStringExpression) {
-          const replacement = new StaticMemberAssignmentTarget({
-            object: node.object,
-            property: node.expression.value,
-          });
-          return isValid(replacement) ? replacement : node;
-        } else {
-          return node;
-        }
-      },
-    );
-
-    this.replaceRecursive(
-      `ComputedPropertyName[expression.type="LiteralStringExpression"]`,
-      (node: ComputedPropertyName) => {
-        if (node.expression instanceof LiteralStringExpression) {
-          const replacement = new StaticPropertyName({
-            value: node.expression.value,
-          });
-          return isValid(replacement) ? replacement : node;
-        } else {
-          return node;
-        }
-      },
-    );
-
-    return this;
-  }
-
-  validate() {
-    return isValid(this.ast);
-  }
-
-  expandBoolean() {
-    this.replace(
-      `UnaryExpression[operator="!"][operand.value=0]`,
-      () => new LiteralBooleanExpression({ value: true }),
-    );
-    this.replace(
-      `UnaryExpression[operator="!"][operand.value=1]`,
-      () => new LiteralBooleanExpression({ value: false }),
-    );
-    return this;
-  }
-
-  normalizeIdentifiers(seed = 1, Generator = IdGenerator) {
-    const lookupTable = this.getLookupTable();
-    const idGenerator = new Generator(seed);
-    renameScope(lookupTable.scope, idGenerator, this._parentMap);
-    if (this.autoCleanup) this.cleanup();
-    return this;
-  }
 }
 
-function extractStatement(tree: Script) {
-  // catch the case where a string was parsed alone and read as a directive.
-  if (tree.directives.length > 0) {
-    return new ExpressionStatement({
-      expression: new LiteralStringExpression({
-        value: tree.directives[0].rawValue,
-      }),
-    });
-  } else {
-    return tree.statements[0];
-  }
-}
-
-function extractExpression(tree: Script) {
-  // catch the case where a string was parsed alone and read as a directive.
-  if (tree.directives.length > 0) {
-    return new LiteralStringExpression({
-      value: tree.directives[0].rawValue,
-    });
-  } else {
-    if (tree.statements[0].type === 'ExpressionStatement') {
-      return tree.statements[0].expression;
-    } else {
-      throw new RefactorError(`Can't replace an expression with a node of type ${tree.statements[0].type}`);
-    }
-  }
-}
-
-function renameScope(scope: Scope, idGenerator: IterableIterator<string>, parentMap: WeakMap<ShiftNode, ShiftNode>) {
-  scope.variableList.forEach(variable => {
-    if (variable.declarations.length === 0) return;
-    const nextId = idGenerator.next();
-    const isParam = variable.declarations.find(_ => _.type.name === 'Parameter');
-    let newName = `$$${nextId}`;
-    if (isParam) {
-      const parent = parentMap.get(isParam.node) as FormalParameters;
-      const position = parent.items.indexOf(isParam.node as BindingIdentifier);
-      newName = `$arg${position}_${nextId}`;
-    }
-    variable.declarations.forEach(_ => (_.node.name = newName));
-    variable.references.forEach(_ => (_.node.name = newName));
-  });
-  scope.children.forEach(_ => renameScope(_, idGenerator, parentMap));
-}

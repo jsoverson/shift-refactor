@@ -1,10 +1,9 @@
-import { RefactorSession, RefactorError } from "../src/index";
-import { parseScript as parse } from "shift-parser";
-import Shift from 'shift-ast';
-
 import chai from "chai";
-import { IdentifierExpression } from "shift-ast";
-import { DebuggerStatement } from "shift-ast";
+import { DebuggerStatement, IdentifierExpression } from "shift-ast";
+import { parseScript as parse } from "shift-parser";
+import { RefactorSession } from "../src/index";
+import { RefactorError } from "../src/types";
+
 
 describe("insert", function() {
   describe("insertBefore", () => {

@@ -1,8 +1,7 @@
-import { RefactorSession } from "../src/index";
-import { parseScript as parse } from "shift-parser";
-import Shift from 'shift-ast';
-
 import chai from "chai";
+import { parseScript as parse } from "shift-parser";
+import { RefactorSession } from "../src/index";
+
 
 describe("rename", function() {
   it("rename function declarations", () => {

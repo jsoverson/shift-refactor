@@ -1,8 +1,8 @@
-import { RefactorSession } from "../src/index";
-import { parseScript as parse } from "shift-parser";
-
 import chai from "chai";
 import { LiteralStringExpression } from "shift-ast";
+import { parseScript as parse } from "shift-parser";
+import { RefactorSession } from "../src/index";
+
 
 describe("API", function() {
   it("should expose.query()", () => {

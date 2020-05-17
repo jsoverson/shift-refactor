@@ -1,27 +1,27 @@
-import { RefactorSession } from "../src/index";
-import { parseScript as parse } from "shift-parser";
-
 import chai from "chai";
-import { IdGenerator } from "../src/id-generator";
+import { parseScript as parse } from "shift-parser";
+import { MemorableIdGenerator } from "../../src/id-generator";
+import { RefactorSession } from "../../src";
 
-describe("util", function() {
+
+describe("common", function() {
   describe("computedToStatic", () => {
     it("should replace all ComputedMemberProperties", () => {
       let ast = parse(`a["b"]["c"];a["b"]["c"]=2`);
       const refactor = new RefactorSession(ast);
-      refactor.convertComputedToStatic();
+      refactor.common.convertComputedToStatic();
       chai.expect(refactor.ast).to.deep.equal(parse("a.b.c;a.b.c=2"));
     });
     it("should not replace what would make an invalid StaticMemberProperty", () => {
       let ast = parse(`a["2b"] = 2`);
       const refactor = new RefactorSession(ast);
-      refactor.convertComputedToStatic();
+      refactor.common.convertComputedToStatic();
       chai.expect(refactor.ast).to.deep.equal(parse('a["2b"] = 2'));
     });
     it("should replace all ComputedPropertyNames", () => {
       let ast = parse(`a = {["b"]:2}`);
       const refactor = new RefactorSession(ast);
-      refactor.convertComputedToStatic();
+      refactor.common.convertComputedToStatic();
       chai.expect(refactor.ast).to.deep.equal(parse("a = {b:2}"));
     });
   });
@@ -29,7 +29,7 @@ describe("util", function() {
   it("expandBoolean", () => {
     let ast = parse(`if (!0 || !1) true`);
     const refactor = new RefactorSession(ast);
-    refactor.expandBoolean();
+    refactor.common.expandBoolean();
     chai.expect(refactor.ast).to.deep.equal(parse("if (true || false) true"));
   });
   
@@ -37,7 +37,7 @@ describe("util", function() {
     it("should rename arbitrary variables by name alone", () => {
       let ast = parse(`var a = 2; b = 3; function d(a) {let c = a;}`);
       const refactor = new RefactorSession(ast);
-      refactor.massRename([
+      refactor.common.massRename([
         ['a', 'a1'],
         ['b', 'b1'],
         ['c', 'c1'],
@@ -51,10 +51,10 @@ describe("util", function() {
       let ast = parse(
         `const arst=1, aryl=2; var aiai; function foie(rses){const arst=2;arst++;};foie();`
       );
-      const gen = new IdGenerator(10);
-      const first = gen.next(), second = gen.next(), third = gen.next(), fourth = gen.next(), fifth = gen.next(), sixth = gen.next();
+      const gen = new MemorableIdGenerator(10);
+      const first = gen.next().value, second = gen.next().value, third = gen.next().value, fourth = gen.next().value, fifth = gen.next().value, sixth = gen.next().value;
       const refactor = new RefactorSession(ast);
-      refactor.normalizeIdentifiers(10);
+      refactor.common.normalizeIdentifiers(10);
       chai
         .expect(refactor.ast)
         .to.deep.equal(
@@ -65,10 +65,10 @@ describe("util", function() {
       let ast = parse(
         `const zzzz=1; console.log(zzzz)`
       );
-      const gen = new IdGenerator(10);
-      const first = gen.next();
+      const gen = new MemorableIdGenerator(10);
+      const first = gen.next().value;
       const refactor = new RefactorSession(ast);
-      refactor.normalizeIdentifiers();
+      refactor.common.normalizeIdentifiers(10);
       chai
         .expect(refactor.ast)
         .to.deep.equal(
@@ -76,5 +76,12 @@ describe("util", function() {
         );
     });
   });
-  
+  describe("unshorten", function() {
+    it("should unshorten variable declarations", () => {
+      let ast = parse(`let a=2,r=require;r()`);
+      const refactor = new RefactorSession(ast);
+      refactor.common.unshorten(`VariableDeclarator[init.name="require"]`);
+      chai.expect(refactor.ast).to.deep.equal(parse("let a=2;require()"));
+    });
+  });
 });
