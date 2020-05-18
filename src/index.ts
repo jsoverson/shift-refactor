@@ -9,6 +9,7 @@ import { isString, findNodes, isFunction, isShiftNode, isStatement, copy, isArra
 import { SelectorOrNode, Replacer, RefactorError } from './types';
 import { RefactorCommonPlugin } from "./refactor-plugin-common";
 import { RefactorPlugin } from './refactor-plugin';
+import { RefactorUnsafePlugin } from './refactor-plugin-unsafe';
 
 const debug = DEBUG('shift-refactor');
 
@@ -34,6 +35,7 @@ export class RefactorSession {
 
     this._rebuildParentMap(); 
     this.use(RefactorCommonPlugin);
+    this.use(RefactorUnsafePlugin);
   }
 
   use<T extends RefactorPlugin>(Plugin: new(session:RefactorSession) => T) {

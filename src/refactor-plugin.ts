@@ -1,7 +1,6 @@
 import { RefactorSession } from ".";
 
 export abstract class RefactorPlugin {
-  abstract name: string;
   session: RefactorSession;
 
   abstract register(): void;
