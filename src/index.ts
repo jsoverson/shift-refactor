@@ -19,7 +19,9 @@ export class RefactorSession {
   ast: Node;
   autoCleanup = true;
   dirty = false;
+
   _scopeMap = new WeakMap();
+  _scopeOwnerMap = new WeakMap<Node, Scope>();
   _parentMap = new WeakMap<Node, Node>();
 
   _replacements = new WeakMap();
@@ -36,6 +38,8 @@ export class RefactorSession {
     this._rebuildParentMap(); 
     this.use(RefactorCommonPlugin);
     this.use(RefactorUnsafePlugin);
+    
+    this.getLookupTable();
   }
 
   use<T extends RefactorPlugin>(Plugin: new(session:RefactorSession) => T) {
@@ -202,6 +206,7 @@ export class RefactorSession {
     const lookupTable = this.getLookupTable();
     this._scopeMap = new WeakMap();
     const recurse = (scope: Scope) => {
+      this._scopeOwnerMap.set(scope.astNode, scope);
       scope.variableList.forEach((variable: Variable) => this._scopeMap.set(variable, scope));
       scope.children.forEach(recurse);
     };
@@ -287,6 +292,10 @@ export class RefactorSession {
     if (isShiftNode(variableLookup)) variableLookup = this.lookupVariable(variableLookup);
 
     return this._scopeMap.get(variableLookup);
+  }
+
+  getInnerScope(node: FunctionDeclaration) {
+    return this._scopeOwnerMap.get(node);
   }
 
   lookupVariable(node: Node) {

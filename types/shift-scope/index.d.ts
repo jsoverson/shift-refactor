@@ -6,7 +6,7 @@ declare module "shift-scope" {
     variableMap: import("multimap");
     constructor(globalScope: GlobalScope);
     
-    lookup(node: import("shift-ast").ShiftNode): Variable;
+    lookup(node: import("shift-ast").Node): Variable;
   
     isGlobal(node: Scope): node is GlobalScope;
   }
@@ -43,11 +43,11 @@ declare module "shift-scope" {
     node: import("shift-ast").BindingIdentifier | import("shift-ast").AssignmentTargetIdentifier;
     type: DeclarationType;
   
-    constructor(node: import("shift-ast").ShiftNode, type: DeclarationType);
+    constructor(node: import("shift-ast").Node, type: DeclarationType);
   }
 
 
-  export default function analyze(script: import("shift-ast").ShiftNode): Scope;
+  export default function analyze(script: import("shift-ast").Node): Scope;
 
   export class Accessibility {
     isRead: boolean;
@@ -66,7 +66,7 @@ declare module "shift-scope" {
   export class Reference {
     node: import("shift-ast").IdentifierExpression | import("shift-ast").AssignmentTargetIdentifier | import("shift-ast").BindingIdentifier;
     accessibility: Accessibility;
-    constructor(node:import("shift-ast").ShiftNode, accessibility: Accessibility);
+    constructor(node:import("shift-ast").Node, accessibility: Accessibility);
   }
   
   export enum ScopeType {
@@ -86,9 +86,9 @@ declare module "shift-scope" {
 
   export class Scope {
     children: Scope[];
-    through:[];
+    through:import("multimap");
     type: ScopeType;
-    astNode: import("shift-ast").ShiftNode;
+    astNode: import("shift-ast").Node;
     variables: Map<string, Variable>;
     variableList: Variable[];
     dynamic: boolean;
