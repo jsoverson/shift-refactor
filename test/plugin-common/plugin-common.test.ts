@@ -53,6 +53,24 @@ describe('plugin-common',() => {
     });
   });
   
+  describe('compressCommaOperator', function() {
+    it('should eliminate literals in a comma expression', () => {
+      let ast = parse(`let a=(1,2,3,4)`);
+      const refactor = new RefactorSession(ast);
+      refactor.common.compressCommaOperators();
+      chai.expect(refactor.ast).to.deep.equal(parse('let a=4;'));
+    });
+  });
+
+  describe('compressConditonalExpressions', function() {
+    it('should do simple evaluation of conditionals with literals', () => {
+      let ast = parse(`let a=true ? 1 : 2;`);
+      const refactor = new RefactorSession(ast);
+      refactor.common.compressConditonalExpressions();
+      chai.expect(refactor.ast).to.deep.equal(parse('let a=1;'));
+    });
+  });
+  
   describe('computedToStatic', () => {
     it('should replace all ComputedMemberProperties', () => {
       let ast = parse(`a["b"]["c"];a["b"]["c"]=2`);

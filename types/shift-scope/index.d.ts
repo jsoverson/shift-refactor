@@ -1,4 +1,3 @@
-
 declare module "shift-scope" {
 
   export class ScopeLookup {

@@ -1,28 +1,86 @@
 import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
 import DEBUG from 'debug';
-import { BindingIdentifier, ClassDeclaration, ComputedMemberAssignmentTarget, ComputedMemberExpression, ComputedPropertyName, Expression, ExpressionStatement, FormalParameters, FunctionDeclaration, IdentifierExpression, LiteralBooleanExpression, LiteralStringExpression, Script, Node, Statement, StaticMemberAssignmentTarget, StaticMemberExpression, StaticPropertyName, VariableDeclarator, LiteralInfinityExpression, LiteralNumericExpression, LiteralRegExpExpression, LiteralNullExpression } from 'shift-ast';
+import {
+  BindingIdentifier,
+  ExpressionStatement,
+  FunctionDeclaration,
+  IdentifierExpression,
+  Node,
+  Script,
+  VariableDeclarator,
+  AssignmentTargetIdentifier,
+  ClassDeclaration,
+  FunctionExpression,
+  AssignmentExpression,
+  ClassExpression,
+  ArrayBinding,
+  ObjectBinding,
+  ObjectAssignmentTarget,
+  Statement,
+  Expression,
+} from 'shift-ast';
 import { parseScript } from 'shift-parser';
-import shiftScope, { Declaration, Reference, Scope, ScopeLookup, Variable } from 'shift-scope';
+import shiftScope, { Scope, ScopeLookup, Variable, Reference, Declaration } from 'shift-scope';
 import traverser from 'shift-traverser';
 import { default as isValid } from 'shift-validator';
-import { isString, findNodes, isFunction, isShiftNode, isStatement, copy, isArray, extractStatement, extractExpression } from './util';
-import { SelectorOrNode, Replacer, RefactorError } from './types';
-import { RefactorCommonPlugin } from "./refactor-plugin-common";
 import { RefactorPlugin } from './refactor-plugin';
+import { RefactorCommonPlugin } from './refactor-plugin-common';
 import { RefactorUnsafePlugin } from './refactor-plugin-unsafe';
+import { RefactorError, Replacer, SelectorOrNode } from './types';
+import {
+  copy,
+  extractExpression,
+  extractStatement,
+  findNodes,
+  isArray,
+  isFunction,
+  isShiftNode,
+  isStatement,
+  isString,
+  buildParentMap,
+} from './util';
+import deepEqual from 'fast-deep-equal';
+import { waterfallMap } from './waterfall';
 
 const debug = DEBUG('shift-refactor');
 
 const { query } = require('shift-query');
+
+// Identifiers that are easy to reason about
+export type SimpleIdentifier = BindingIdentifier | IdentifierExpression | AssignmentTargetIdentifier;
+// Nodes containing a SimpleIdentifier that are similarly easy to reason about
+export type SimpleIdentifierOwner =
+  | AssignmentExpression
+  | ClassDeclaration
+  | ClassExpression
+  | FunctionDeclaration
+  | FunctionExpression
+  | VariableDeclarator;
+
+export { isLiteral } from './util';
+
+// experimental start to a jQuery-like chaining
+export function $r(ast: string | Node, { autoCleanup = true } = {}) {
+  const $script = new RefactorSession(ast, {autoCleanup});
+
+  function query(selector: string) {
+    return $script.query(selector);
+  }
+  const prototype = Object.getPrototypeOf($script);
+  const hybridObject = Object.assign(query, $script);
+  Object.setPrototypeOf(hybridObject, prototype);
+  return hybridObject;
+}
 
 export class RefactorSession {
   ast: Node;
   autoCleanup = true;
   dirty = false;
 
-  _scopeMap = new WeakMap();
+  _scopeMap = new WeakMap<Variable, Scope>();
   _scopeOwnerMap = new WeakMap<Node, Scope>();
   _parentMap = new WeakMap<Node, Node>();
+  _variables = new Set<Variable>();
 
   _replacements = new WeakMap();
   _deletions = new WeakSet();
@@ -35,29 +93,24 @@ export class RefactorSession {
     this.ast = ast;
     this.autoCleanup = autoCleanup;
 
-    this._rebuildParentMap(); 
+    this._rebuildParentMap();
     this.use(RefactorCommonPlugin);
     this.use(RefactorUnsafePlugin);
-    
+
     this.getLookupTable();
   }
 
-  use<T extends RefactorPlugin>(Plugin: new(session:RefactorSession) => T) {
+  use<T extends RefactorPlugin>(Plugin: new (session: RefactorSession) => T) {
     const plugin = new Plugin(this);
     plugin.register();
   }
 
-  static parse(src:string): Script {
+  static parse(src: string): Script {
     return parseScript(src);
   }
 
   _rebuildParentMap() {
-    this._parentMap = new WeakMap();
-    traverser.traverse(this.ast, {
-      enter: (node: Node, parent: Node) => {
-        this._parentMap.set(node, parent);
-      },
-    });
+    this._parentMap = buildParentMap(this.ast);
   }
 
   rename(selector: SelectorOrNode, newName: string) {
@@ -66,7 +119,7 @@ export class RefactorSession {
     const nodes = findNodes(this.ast, selector);
 
     nodes.forEach((node: Node) => {
-      if (node instanceof VariableDeclarator) node = node.binding;
+      if (node.type === 'VariableDeclarator') node = node.binding;
       const lookup = lookupTable.variableMap.get(node);
       if (!lookup) return;
       this._renameInPlace(lookup[0], newName);
@@ -90,6 +143,42 @@ export class RefactorSession {
     return this;
   }
 
+  async replaceAsync(selector: SelectorOrNode, replacer: (node:Node)=>Promise<Node | string>) {
+    const nodes = findNodes(this.ast, selector);
+
+    if (!isFunction(replacer)) {
+      throw new RefactorError(`Invalid replacer type for replaceAsync. Pass a function or use .replace() instead.`);
+    }
+
+    const promiseResults = await waterfallMap(nodes, async (node: Node, i:number) => {
+      let replacement = null;
+      const rv = await replacer(node);
+      if (isShiftNode(rv)) {
+        replacement = rv;
+      } else if (isString(rv)) {
+        const returnedTree = parseScript(rv);
+        if (isStatement(node)) {
+          replacement = extractStatement(returnedTree);
+        } else {
+          replacement = extractExpression(returnedTree);
+        }
+      } else {
+        throw new RefactorError(`Invalid return type from replacement function: ${rv}`);
+      }
+
+      if (node && replacement !== node) {
+        this._queueReplacement(node, replacement);
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    if (this.autoCleanup) this.cleanup();
+
+    return promiseResults.filter(result => result);
+  }
+
   replace(selector: SelectorOrNode, replacer: Replacer) {
     const nodes = findNodes(this.ast, selector);
 
@@ -99,8 +188,11 @@ export class RefactorSession {
       let replacement = null;
       if (isFunction(replacer)) {
         const rv = replacer(node);
+        if (rv && typeof rv.then === 'function') {
+          throw new RefactorError(`Promise returned from replacer function, use .replaceAsync() instead.`);
+        }
         if (isShiftNode(rv)) {
-          replacement = replacer(node);
+          replacement = rv;
         } else if (isString(rv)) {
           const returnedTree = parseScript(rv);
           if (isStatement(node)) {
@@ -117,7 +209,7 @@ export class RefactorSession {
         if (isStatement(node)) {
           replacement = copy(replacementScript.statements[0]);
         } else {
-          if (replacementScript.statements[0] instanceof ExpressionStatement) {
+          if (replacementScript.statements[0].type === 'ExpressionStatement') {
             replacement = copy(replacementScript.statements[0].expression);
           }
         }
@@ -172,8 +264,9 @@ export class RefactorSession {
     return this;
   }
 
-  findParent(node: Node) {
-    return this._parentMap.get(node);
+  findParents(selector: SelectorOrNode) {
+    const nodes = findNodes(this.ast, selector);
+    return nodes.map((node:Node) => this._parentMap.get(node));
   }
 
   insertBefore(selector: SelectorOrNode, replacer: Replacer) {
@@ -194,7 +287,7 @@ export class RefactorSession {
     this._replacements.set(from, to);
   }
 
-  getLookupTable() {
+  getLookupTable(): ScopeLookup {
     if (this._lookupTable) return this._lookupTable;
     const globalScope = shiftScope(this.ast);
     this._lookupTable = new ScopeLookup(globalScope);
@@ -205,9 +298,13 @@ export class RefactorSession {
   _rebuildScopeMap() {
     const lookupTable = this.getLookupTable();
     this._scopeMap = new WeakMap();
+    this._variables = new Set();
     const recurse = (scope: Scope) => {
       this._scopeOwnerMap.set(scope.astNode, scope);
-      scope.variableList.forEach((variable: Variable) => this._scopeMap.set(variable, scope));
+      scope.variableList.forEach((variable: Variable) => {
+        this._variables.add(variable);
+        this._scopeMap.set(variable, scope);
+      });
       scope.children.forEach(recurse);
     };
     recurse(lookupTable.scope);
@@ -268,15 +365,59 @@ export class RefactorSession {
     return query(this.ast, selector);
   }
 
+  // alias for query because I refuse to name findOne()->queryOne() and I need the symmetry.
+  find(selector: string) {
+    return this.query(selector);
+  }
+
   queryFrom(astNodes: Node | Node[], selector: string) {
     return isArray(astNodes) ? astNodes.map(node => query(node, selector)).flat() : query(astNodes, selector);
+  }
+
+  findMatchingExpression(sampleSrc:string): Expression[] {
+    const tree = parseScript(sampleSrc);
+    if (tree.statements[0] && tree.statements[0].type === 'ExpressionStatement') {
+      const sampleExpression = tree.statements[0].expression;
+      const potentialMatches = this.query(sampleExpression.type);
+      const matches = potentialMatches.filter((realNode:Node) => deepEqual(sampleExpression, realNode));
+      return matches;
+    }
+    return [];
+  }
+
+  findMatchingStatement(sampleSrc:string): Statement[] {
+    const tree = parseScript(sampleSrc);
+    if (tree.statements[0]) {
+      const sampleStatement = tree.statements[0];
+      const potentialMatches = this.query(sampleStatement.type);
+      const matches = potentialMatches.filter((realNode:Node) => deepEqual(sampleStatement, realNode));
+      return matches;
+    }
+    return [];
+  }
+
+  findOne(selector: string) {
+    const nodes = this.query(selector);
+    if (nodes.length !== 1)
+      throw new Error(`findOne('${selector}') found ${nodes.length} nodes. If this is intentional, use .find()`);
+    return nodes[0];
+  }
+
+  findReferences(node: SimpleIdentifier | SimpleIdentifierOwner): Reference[] {
+    const lookup = this.lookupVariable(node);
+    return lookup.references;
+  }
+
+  findDeclarations(node: SimpleIdentifier | SimpleIdentifierOwner): Declaration[] {
+    const lookup = this.lookupVariable(node);
+    return lookup.declarations;
   }
 
   closest(originSelector: SelectorOrNode, closestSelector: string) {
     const nodes = findNodes(this.ast, originSelector);
 
     const recurse = (node: Node, selector: string): Node[] => {
-      const parent = this.findParent(node);
+      const parent = this.findParents(node)[0];
       if (!parent) return [];
       const matches = query(parent, selector);
       if (matches.length > 0) return matches;
@@ -286,7 +427,7 @@ export class RefactorSession {
     return nodes.flatMap((node: Node) => recurse(node, closestSelector));
   }
 
-  lookupScope(variableLookup: ScopeLookup) {
+  lookupScope(variableLookup: Variable | SimpleIdentifierOwner | SimpleIdentifier) {
     if (isArray(variableLookup)) variableLookup = variableLookup[0];
 
     if (isShiftNode(variableLookup)) variableLookup = this.lookupVariable(variableLookup);
@@ -298,11 +439,29 @@ export class RefactorSession {
     return this._scopeOwnerMap.get(node);
   }
 
-  lookupVariable(node: Node) {
+  lookupVariable(node: SimpleIdentifierOwner | SimpleIdentifier) {
     const lookupTable = this.getLookupTable();
     if (isArray(node)) node = node[0];
 
-    const lookup = lookupTable.variableMap.get(node);
+    let lookup: Variable[];
+    switch (node.type) {
+      case 'AssignmentExpression':
+      case 'VariableDeclarator':
+        lookup = lookupTable.variableMap.get(node.binding);
+        break;
+      case 'AssignmentTargetIdentifier':
+      case 'IdentifierExpression':
+      case 'BindingIdentifier':
+        lookup = lookupTable.variableMap.get(node);
+        break;
+      case 'ClassDeclaration':
+      case 'ClassExpression':
+      case 'FunctionDeclaration':
+      case 'FunctionExpression':
+        lookup = lookupTable.variableMap.get(node.name);
+        break;
+    }
+
     if (!lookup)
       throw new Error('Could not find reference to passed identifier. Ensure you are passing a valid Identifier node.');
     if (lookup.length > 1)
@@ -324,6 +483,4 @@ export class RefactorSession {
   print(ast?: Node) {
     return codegen(ast || this.ast, new FormattedCodeGen());
   }
-
 }
-

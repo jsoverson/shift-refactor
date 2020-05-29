@@ -2,7 +2,8 @@
   "name": "shift-refactor",
   "version": "0.3.1",
   "description": "A suite of utilities to query and modify JavaScript source",
-  "main": "src/index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.js",
   "repository": {
     "type": "git",
     "url": ""
@@ -26,9 +27,11 @@
   "dependencies": {
     "@jsoverson/shift-codegen": "^7.0.0",
     "debug": "^4.1.1",
+    "fast-deep-equal": "^3.1.1",
     "seedrandom": "^3.0.5",
-    "shift-ast": "^6.0.0",
+    "shift-ast": "^6.1.0",
     "shift-parser": "^7.0.0",
+    "shift-printer": "^1.0.1",
     "shift-query": "^1.0.0",
     "shift-scope": "^4.0.0",
     "shift-traverser": "^1.0.0",
