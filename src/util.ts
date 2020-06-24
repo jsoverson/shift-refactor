@@ -62,7 +62,7 @@ export function isLiteral(
   );
 }
 
-export function findNodes(ast: Node, input: SelectorOrNode) {
+export function findNodes(ast: Node, input: SelectorOrNode): Node[] {
   if (isString(input)) return query(ast, input);
   else if (isArray(input)) return input;
   else if (isShiftNode(input)) return [input];

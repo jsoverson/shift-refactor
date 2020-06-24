@@ -18,6 +18,9 @@ import {
   ObjectAssignmentTarget,
   Statement,
   Expression,
+  DebuggerStatement,
+  FunctionBody,
+  ReturnStatement
 } from 'shift-ast';
 import { parseScript } from 'shift-parser';
 import shiftScope, { Scope, ScopeLookup, Variable, Reference, Declaration } from 'shift-scope';
@@ -41,6 +44,7 @@ import {
 } from './util';
 import deepEqual from 'fast-deep-equal';
 import { waterfallMap } from './waterfall';
+import { threadId } from 'worker_threads';
 
 const debug = DEBUG('shift-refactor');
 
@@ -267,6 +271,28 @@ export class RefactorSession {
   findParents(selector: SelectorOrNode) {
     const nodes = findNodes(this.ast, selector);
     return nodes.map((node:Node) => this._parentMap.get(node));
+  }
+
+  debug(selector: SelectorOrNode) {
+    const nodes = findNodes(this.ast, selector);
+    nodes.forEach(node => {
+      switch (node.type) {
+        case 'FunctionExpression':
+        case 'FunctionDeclaration':
+        case 'Method':
+          this.insertBefore(node.body.statements, new DebuggerStatement());
+          break;
+        case 'ArrowExpression':
+          if (node.body.type !== 'FunctionBody') {
+            this.replace(node.body, new FunctionBody({directives:[], statements:[
+              new DebuggerStatement(),
+              new ReturnStatement({expression: node.body })
+            ]}))
+          }
+        default:
+          // nothing;
+      }
+    });
   }
 
   insertBefore(selector: SelectorOrNode, replacer: Replacer) {
