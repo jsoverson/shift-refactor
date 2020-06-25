@@ -24,9 +24,9 @@ describe('API', function() {
       chai.expect(nodes.length).to.equal(1);
     });
     it('.debug()', () => {
-      const refactor = new RefactorSession(`b = _ => foo(); a.x = function(){b();}`);
+      const refactor = new RefactorSession(`b = _ => foo(); c = _ => {bar()}; a.x = function(){b();c();}`);
       refactor.debug(`FunctionExpression, ArrowExpression`);
-      chai.expect(refactor.ast).to.deep.equal(parseScript('b = _ => {debugger; return foo()}; a.x = function(){debugger;b();}'));
+      chai.expect(refactor.ast).to.deep.equal(parseScript('b = _ => {debugger; return foo()}; c = _ => {debugger; bar()}; a.x = function(){debugger;b();c();}'));
     });
     it('.findOne()', () => {
       const refactor = new RefactorSession(`function foo(){}\nfunction bar(){}`);

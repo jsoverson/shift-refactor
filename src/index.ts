@@ -273,12 +273,24 @@ export class RefactorSession {
 
   debug(selector: SelectorOrNode) {
     const nodes = findNodes(this.ast, selector);
+    const injectIntoBody = (body: FunctionBody) => {
+      if (body.statements.length > 0) {
+        this.insertBefore(body.statements[0], new DebuggerStatement());
+      } else {
+        this.replace(body, new FunctionBody({
+          directives: [],
+          statements: [
+            new DebuggerStatement(),
+          ]
+        }));
+      }
+    } 
     nodes.forEach(node => {
       switch (node.type) {
         case 'FunctionExpression':
         case 'FunctionDeclaration':
         case 'Method':
-          this.insertBefore(node.body.statements, new DebuggerStatement());
+          injectIntoBody(node.body);
           break;
         case 'ArrowExpression':
           if (node.body.type !== 'FunctionBody') {
@@ -286,6 +298,8 @@ export class RefactorSession {
               new DebuggerStatement(),
               new ReturnStatement({expression: node.body })
             ]}))
+          } else {
+            injectIntoBody(node.body);
           }
         default:
           debug('can not call inject debugger statement on %o node', node.type);
