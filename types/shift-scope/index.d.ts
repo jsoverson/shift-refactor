@@ -68,7 +68,24 @@ declare module "shift-scope" {
     constructor(node:import("shift-ast").Node, accessibility: Accessibility);
   }
   
-  export enum ScopeType {
+  export class ScopeType<ScopeDefinition> {
+    name: ScopeDefinition;
+    constructor(name: ScopeDefinition);
+    static GLOBAL: ScopeType<ScopeDefinition.GLOBAL>;
+    static MODULE: ScopeType<ScopeDefinition.MODULE>;
+    static SCRIPT: ScopeType<ScopeDefinition.SCRIPT>;
+    static ARROW_FUNCTION: ScopeType<ScopeDefinition.ARROW_FUNCTION>;
+    static FUNCTION: ScopeType<ScopeDefinition.FUNCTION>;
+    static FUNCTION_NAME: ScopeType<ScopeDefinition.FUNCTION_NAME>;
+    static CLASS_NAME: ScopeType<ScopeDefinition.CLASS_NAME>;
+    static PARAMETERS: ScopeType<ScopeDefinition.PARAMETERS>;
+    static PARAMETER_EXPRESSION: ScopeType<ScopeDefinition.PARAMETER_EXPRESSION>;
+    static WITH: ScopeType<ScopeDefinition.WITH>;
+    static CATCH: ScopeType<ScopeDefinition.CATCH>;
+    static BLOCK: ScopeType<ScopeDefinition.BLOCK>;
+  }
+
+  export enum ScopeDefinition {
     GLOBAL = 'Global',
     MODULE = 'Module',
     SCRIPT = 'Script',
@@ -83,10 +100,13 @@ declare module "shift-scope" {
     BLOCK = 'Block',
   }
 
+
+
+
   export class Scope {
     children: Scope[];
     through:import("multimap");
-    type: ScopeType;
+    type: ScopeType<ScopeDefinition>;
     astNode: import("shift-ast").Node;
     variables: Map<string, Variable>;
     variableList: Variable[];

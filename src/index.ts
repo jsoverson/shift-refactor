@@ -143,8 +143,7 @@ export class RefactorSession {
     if (nodes.length > 0) {
       nodes.forEach((node: Node) => this._queueDeletion(node));
     }
-    if (this.autoCleanup) this.cleanup();
-    return this;
+    return this.conditionalCleanup();
   }
 
   async replaceAsync(selector: SelectorOrNode, replacer: (node:Node)=>Promise<Node | string>) {
@@ -178,7 +177,7 @@ export class RefactorSession {
       }
     });
 
-    if (this.autoCleanup) this.cleanup();
+    this.conditionalCleanup();
 
     return promiseResults.filter(result => result);
   }
@@ -226,7 +225,7 @@ export class RefactorSession {
       }
     });
 
-    if (this.autoCleanup) this.cleanup();
+    this.conditionalCleanup();
     return replaced.filter((wasReplaced: any) => wasReplaced).length;
   }
 
@@ -255,7 +254,7 @@ export class RefactorSession {
 
     nodes.forEach((node: Node) => {
       if (!isStatement(node)) throw new RefactorError('Can only insert before or after Statements or Declarations');
-      this.dirty = true;
+      this.isDirty(true);
       const toInsert = getInsertion(replacer, node);
       if (!isStatement(toInsert)) throw new RefactorError('Will not insert anything but a Statement or Declaration');
       this._insertions.set(node, {
@@ -264,8 +263,7 @@ export class RefactorSession {
       });
     });
 
-    if (this.autoCleanup) this.cleanup();
-    return this;
+    return this.conditionalCleanup();
   }
 
   findParents(selector: SelectorOrNode) {
@@ -290,6 +288,7 @@ export class RefactorSession {
             ]}))
           }
         default:
+          debug('can not call inject debugger statement on %o node', node.type);
           // nothing;
       }
     });
@@ -304,12 +303,12 @@ export class RefactorSession {
   }
 
   _queueDeletion(node: Node) {
-    this.dirty = true;
+    this.isDirty(true);
     this._deletions.add(node);
   }
 
   _queueReplacement(from: Node, to: Node) {
-    this.dirty = true;
+    this.isDirty(true);
     this._replacements.set(from, to);
   }
 
@@ -336,20 +335,22 @@ export class RefactorSession {
     recurse(lookupTable.scope);
   }
 
-  _isDirty() {
+  isDirty(dirty?: boolean) {
+    if (dirty !== undefined) this.dirty = dirty;
     return this.dirty;
-  }
-
-  _makeDirty() {
-    this.dirty = true;
   }
 
   validate() {
     return isValid(this.ast);
   }
 
+  private conditionalCleanup() {
+    if (this.autoCleanup) this.cleanup();
+    return this;
+  }
+
   cleanup() {
-    if (!this.dirty) return;
+    if (!this.isDirty()) return;
     const _this = this;
     const result = traverser.replace(this.ast, {
       leave: function(node: Node, parent: Node) {
@@ -384,6 +385,7 @@ export class RefactorSession {
     });
     this._lookupTable = undefined;
     this._rebuildParentMap();
+    this.isDirty(false);
     return (this.ast = result);
   }
 
@@ -507,6 +509,7 @@ export class RefactorSession {
   }
 
   print(ast?: Node) {
+    if (this.isDirty()) throw new RefactorError('refactor .print() called with a dirty AST. This is almost always a bug. Call .cleanup() before printing.')
     return codegen(ast || this.ast, new FormattedCodeGen());
   }
 }

@@ -98,19 +98,21 @@ export function extractExpression(tree: Script) {
 }
 
 export function renameScope(scope: Scope, idGenerator: IdGenerator, parentMap: WeakMap<Node, Node>) {
-  scope.variableList.forEach(variable => {
-    if (variable.declarations.length === 0) return;
-    const nextId = idGenerator.next().value;
-    const isParam = variable.declarations.find(_ => _.type.name === 'Parameter');
-    let newName = `$$${nextId}`;
-    if (isParam) {
-      const parent = parentMap.get(isParam.node) as FormalParameters;
-      const position = parent.items.indexOf(isParam.node as BindingIdentifier);
-      newName = `$arg${position}_${nextId}`;
-    }
-    variable.declarations.forEach(_ => (_.node.name = newName));
-    variable.references.forEach(_ => (_.node.name = newName));
-  });
+  if (scope.type.name !== 'Global' && scope.type.name !== 'Script') {
+    scope.variableList.forEach(variable => {
+      if (variable.declarations.length === 0) return;
+      const nextId = idGenerator.next().value;
+      const isParam = variable.declarations.find(_ => _.type.name === 'Parameter');
+      let newName = `$$${nextId}`;
+      if (isParam) {
+        const parent = parentMap.get(isParam.node) as FormalParameters;
+        const position = parent.items.indexOf(isParam.node as BindingIdentifier);
+        newName = `$arg${position}_${nextId}`;
+      }
+      variable.declarations.forEach(_ => (_.node.name = newName));
+      variable.references.forEach(_ => (_.node.name = newName));
+    });
+  }
   scope.children.forEach(_ => renameScope(_, idGenerator, parentMap));
 }
 

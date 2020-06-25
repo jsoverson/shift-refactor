@@ -18,7 +18,6 @@ describe('plugin-unsafe',() => {
       let ast = parse(`var a = 1, b = "string", c = -1;fn(a,b,c);`);
       const refactor = new RefactorSession(ast);
       refactor.unsafe.inlineLiterals();
-      console.log(refactor.print())
       chai.expect(ast).to.deep.equal(parse(`var a = 1, b = "string", c = -1;fn(1,"string",-1);`));
     });
   })

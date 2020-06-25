@@ -7,31 +7,27 @@ describe('plugin-common',() => {
 
   describe('normalizeIdentifiers', () => {
     it('should replace id names with memorable names', () => {
-      let ast = parse(`const arst=1, aryl=2; var aiai; function foie(rses){const arst=2;arst++;};foie();`);
+      let ast = parse(`const arst=1; var aiai; function foie(rses){const arst=2;arst++;};foie();`);
       const gen = new MemorableIdGenerator(10);
       const first = gen.next().value,
-        second = gen.next().value,
-        third = gen.next().value,
-        fourth = gen.next().value,
-        fifth = gen.next().value,
-        sixth = gen.next().value;
+        second = gen.next().value;
       const refactor = new RefactorSession(ast);
       refactor.common.normalizeIdentifiers(10);
       chai
         .expect(refactor.ast)
         .to.deep.equal(
           parse(
-            `const $$${third}=1, $$${fourth}=2; var $$${first}; function $$${second}($arg0_${sixth}){const $$${fifth}=2;$$${fifth}++};$$${second}();`,
+            `const arst=1; var aiai; function foie($arg0_${second}){const $$${first}=2;$$${first}++};foie();`,
           ),
         );
     });
     it('should not change global vars', () => {
-      let ast = parse(`const zzzz=1; console.log(zzzz)`);
+      let ast = parse(`(function(){const zzzz=1; console.log(zzzz)})`);
       const gen = new MemorableIdGenerator(10);
       const first = gen.next().value;
       const refactor = new RefactorSession(ast);
       refactor.common.normalizeIdentifiers(10);
-      chai.expect(refactor.ast).to.deep.equal(parse(`const $$${first}=1; console.log($$${first})`));
+      chai.expect(refactor.ast).to.deep.equal(parse(`(function () {const $$${first}=1; console.log($$${first})})`));
     });
   });
 
