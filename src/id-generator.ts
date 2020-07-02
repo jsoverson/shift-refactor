@@ -1,12 +1,11 @@
-const { TokenType } = require("shift-parser");
+const {TokenType} = require('shift-parser');
 
-const jsKeywords = Object
-  .values(TokenType)
-  .filter((_:any) => _.name && _.klass.name === 'Keyword')
-  .map((_:any) => _.name);
+const jsKeywords = Object.values(TokenType)
+  .filter((_: any) => _.name && _.klass.name === 'Keyword')
+  .map((_: any) => _.name);
 
-  import nouns from './nouns';
-  import adjectives from './adjectives';
+import nouns from './nouns';
+import adjectives from './adjectives';
 
 import seedrandom from 'seedrandom';
 
@@ -19,7 +18,6 @@ export class MemorableIdGenerator implements IdGenerator {
 
   constructor(seed = 0) {
     this.rng = seedrandom(seed.toString());
-
   }
 
   randomNoun() {
@@ -37,8 +35,8 @@ export class MemorableIdGenerator implements IdGenerator {
 
     return {
       done: false,
-      value: `${this.randomAdjective()}${noun[0].toUpperCase()}${noun.slice(1)}`
-    }
+      value: `${this.randomAdjective()}${noun[0].toUpperCase()}${noun.slice(1)}`,
+    };
   }
 
   *[Symbol.iterator]() {
@@ -49,10 +47,10 @@ export class MemorableIdGenerator implements IdGenerator {
 }
 
 export class BasicIdGenerator implements IdGenerator {
-  alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   reservedWords: Set<string> = new Set(jsKeywords);
   current: number[];
-  
+
   constructor(alphabet: string, reservedWords?: string[]) {
     if (alphabet) this.alphabet = alphabet;
     if (reservedWords) this.reservedWords = new Set(reservedWords);
@@ -61,17 +59,17 @@ export class BasicIdGenerator implements IdGenerator {
 
   next() {
     this._increment();
-    const nextId = this.current.reduce((acc, code) => acc + this.alphabet[code], "");
+    const nextId = this.current.reduce((acc, code) => acc + this.alphabet[code], '');
     if (!this.reservedWords.has(nextId)) {
       return {
         done: false,
-        value: nextId
+        value: nextId,
       };
     } else {
       this._increment();
       return {
         done: false,
-        value: this.current.reduce((acc, code) => acc + this.alphabet[code], "")
+        value: this.current.reduce((acc, code) => acc + this.alphabet[code], ''),
       };
     }
   }
@@ -95,4 +93,4 @@ export class BasicIdGenerator implements IdGenerator {
       yield this.next();
     }
   }
-};
+}

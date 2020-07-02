@@ -1,4 +1,4 @@
-import { RefactorSession } from ".";
+import {RefactorSession} from '.';
 
 export abstract class RefactorPlugin {
   session: RefactorSession;
@@ -7,5 +7,5 @@ export abstract class RefactorPlugin {
 
   constructor(session: RefactorSession) {
     this.session = session;
-  };
+  }
 }

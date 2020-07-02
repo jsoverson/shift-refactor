@@ -1,32 +1,96 @@
-import debug from "debug";
-import { ComputedMemberAssignmentTarget, ComputedMemberExpression, ComputedPropertyName, IdentifierExpression, LiteralBooleanExpression, LiteralStringExpression, StaticMemberAssignmentTarget, StaticMemberExpression, StaticPropertyName, VariableDeclarator, Node, BinaryExpression, ConditionalExpression } from "shift-ast";
-import { Declaration, Reference } from "shift-scope";
-import { default as isValid } from 'shift-validator';
-import { IdGenerator, MemorableIdGenerator } from "./id-generator";
-import { RefactorPlugin } from "./refactor-plugin";
-import { SelectorOrNode } from "./types";
-import { findNodes, renameScope, isLiteral } from "./util";
+import {
+  ComputedMemberAssignmentTarget,
+  ComputedMemberExpression,
+  ComputedPropertyName,
+  IdentifierExpression,
+  LiteralBooleanExpression,
+  LiteralStringExpression,
+  StaticMemberAssignmentTarget,
+  StaticMemberExpression,
+  StaticPropertyName,
+  VariableDeclarator,
+  Node,
+  BinaryExpression,
+  ConditionalExpression,
+  FunctionBody,
+  DebuggerStatement,
+  ReturnStatement,
+} from 'shift-ast';
+import {Declaration, Reference} from 'shift-scope';
+import {default as isValid} from 'shift-validator';
+import {IdGenerator, MemorableIdGenerator} from './id-generator';
+import {RefactorPlugin} from './refactor-plugin';
+import {SelectorOrNode} from './types';
+import {findNodes, renameScope, isLiteral} from './util';
+import DEBUG from 'debug';
 
-declare module "." {
+declare module '.' {
   interface RefactorSession {
     common: RefactorCommonPlugin;
   }
 }
+const debug = DEBUG('shift-refactor:common');
 
 export class RefactorCommonPlugin extends RefactorPlugin {
   register() {
     this.session.common = this;
   }
 
+  /**
+   *
+   *
+   * @param selectorOrNode
+   */
+  debug(selectorOrNode: SelectorOrNode) {
+    const nodes = findNodes(this.session.ast, selectorOrNode);
+    const injectIntoBody = (body: FunctionBody) => {
+      if (body.statements.length > 0) {
+        this.session.insertBefore(body.statements[0], new DebuggerStatement());
+      } else {
+        this.session.replace(
+          body,
+          new FunctionBody({
+            directives: [],
+            statements: [new DebuggerStatement()],
+          }),
+        );
+      }
+    };
+    nodes.forEach(node => {
+      switch (node.type) {
+        case 'FunctionExpression':
+        case 'FunctionDeclaration':
+        case 'Method':
+          injectIntoBody(node.body);
+          break;
+        case 'ArrowExpression':
+          if (node.body.type !== 'FunctionBody') {
+            this.session.replace(
+              node.body,
+              new FunctionBody({
+                directives: [],
+                statements: [new DebuggerStatement(), new ReturnStatement({expression: node.body})],
+              }),
+            );
+          } else {
+            injectIntoBody(node.body);
+          }
+        default:
+          debug('can not call inject debugger statement on %o node', node.type);
+        // nothing;
+      }
+    });
+  }
+
   compressConditonalExpressions() {
-    this.session.replaceRecursive('ConditionalExpression', (expr:ConditionalExpression) => {
+    this.session.replaceRecursive('ConditionalExpression', (expr: ConditionalExpression) => {
       if (isLiteral(expr.test)) return expr.test ? expr.consequent : expr.alternate;
       else return expr;
     });
   }
 
   compressCommaOperators() {
-    this.session.replaceRecursive('BinaryExpression[operator=","]', (expr:BinaryExpression) => {
+    this.session.replaceRecursive('BinaryExpression[operator=","]', (expr: BinaryExpression) => {
       if (isLiteral(expr.left)) return expr.right;
       else return expr;
     });
@@ -107,21 +171,20 @@ export class RefactorCommonPlugin extends RefactorPlugin {
   expandBoolean() {
     this.session.replace(
       `UnaryExpression[operator="!"][operand.value=0]`,
-      () => new LiteralBooleanExpression({ value: true }),
+      () => new LiteralBooleanExpression({value: true}),
     );
     this.session.replace(
       `UnaryExpression[operator="!"][operand.value=1]`,
-      () => new LiteralBooleanExpression({ value: false }),
+      () => new LiteralBooleanExpression({value: false}),
     );
     return this;
   }
 
-  normalizeIdentifiers(seed = 1, _Generator: new (seed:number) => IdGenerator = MemorableIdGenerator) {
+  normalizeIdentifiers(seed = 1, _Generator: new (seed: number) => IdGenerator = MemorableIdGenerator) {
     const lookupTable = this.session.getLookupTable();
     const idGenerator = new _Generator(seed);
-    renameScope(lookupTable.scope, idGenerator, this.session._parentMap);
+    renameScope(lookupTable.scope, idGenerator, this.session.parentMap);
     if (this.session.autoCleanup) this.session.cleanup();
     return this;
   }
-
 }

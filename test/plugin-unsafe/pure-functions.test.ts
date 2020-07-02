@@ -1,8 +1,13 @@
 import chai from 'chai';
-import { parseScript as parse } from 'shift-parser';
-import { FunctionDeclaration, CallExpression, ExpressionStatement } from 'shift-ast';
-import { $r, RefactorSession } from '../../src';
-import {PureFunctionAssessment, ImpureFunctionQualities, PureFunctionVerdict, PureFunctionAssessmentOptions} from '../../src/pure-functions';
+import {parseScript as parse} from 'shift-parser';
+import {FunctionDeclaration, CallExpression, ExpressionStatement} from 'shift-ast';
+import {$r, RefactorSession} from '../../src';
+import {
+  PureFunctionAssessment,
+  ImpureFunctionQualities,
+  PureFunctionVerdict,
+  PureFunctionAssessmentOptions,
+} from '../../src/pure-functions';
 
 function assess(src: string, options?: PureFunctionAssessmentOptions) {
   const ast = parse(src);
@@ -22,9 +27,7 @@ describe('findPureFunctionCandidates', () => {
     let ast = parse(`function pureEnough(a) {return String.fromCharCode(a)};`);
     const $script = $r(ast);
     const candidates = $script.unsafe.findPureFunctionCandidates({
-      fnAllowList: [
-        'String.fromCharCode()'
-      ]
+      fnAllowList: ['String.fromCharCode()'],
     });
     chai.expect(candidates.size).to.equal(1);
   });
@@ -70,9 +73,7 @@ describe('findPureFunctionCandidates', () => {
 
     it('calls allowlisted functions', () => {
       const options = {
-        fnAllowList: [
-          'String.fromCharCode()'
-        ],
+        fnAllowList: ['String.fromCharCode()'],
       };
       const assessment = assess(`function test(a) { return String.fromCharCode(a); }`, options);
       chai.expect(assessment.verdict).to.equal(PureFunctionVerdict.Probably);

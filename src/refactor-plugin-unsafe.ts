@@ -1,10 +1,10 @@
-import { ClassDeclaration, FunctionDeclaration, VariableDeclarator } from "shift-ast";
-import { RefactorPlugin } from "./refactor-plugin";
-import { copy, isLiteral, isStatement } from "./util";
-import { Variable, Reference, ScopeType, Scope } from "shift-scope";
-import { PureFunctionVerdict, PureFunctionAssessment, PureFunctionAssessmentOptions } from "./pure-functions";
+import {ClassDeclaration, FunctionDeclaration, VariableDeclarator} from 'shift-ast';
+import {RefactorPlugin} from './refactor-plugin';
+import {copy, isLiteral, isStatement} from './util';
+import {Variable, Reference, ScopeType, Scope} from 'shift-scope';
+import {PureFunctionVerdict, PureFunctionAssessment, PureFunctionAssessmentOptions} from './pure-functions';
 
-declare module "." {
+declare module '.' {
   interface RefactorSession {
     unsafe: RefactorUnsafePlugin;
   }
@@ -16,21 +16,23 @@ export class RefactorUnsafePlugin extends RefactorPlugin {
   }
 
   findPureFunctionCandidates(options?: PureFunctionAssessmentOptions) {
-    return new Map(this.session.query('FunctionDeclaration')
-      .map((fn: FunctionDeclaration) => new PureFunctionAssessment(fn, options))
-      .filter((assmt: PureFunctionAssessment) => assmt.verdict === PureFunctionVerdict.Probably)
-      .map((assmt: PureFunctionAssessment) => [assmt.node, assmt])
-      );
+    return new Map(
+      this.session
+        .query('FunctionDeclaration')
+        .map((fn: FunctionDeclaration) => new PureFunctionAssessment(fn, options))
+        .filter((assmt: PureFunctionAssessment) => assmt.verdict === PureFunctionVerdict.Probably)
+        .map((assmt: PureFunctionAssessment) => [assmt.node, assmt]),
+    );
   }
 
   massRename(namePairs: string[][]) {
     namePairs.forEach(([from, to]) => {
-      this.session.lookupVariableByName(from).forEach((lookup: Variable) => this.session._renameInPlace(lookup, to));
+      this.session.lookupVariableByName(from).forEach((lookup: Variable) => this.session.renameInPlace(lookup, to));
     });
   }
 
   inlineLiterals() {
-    for (const variable of this.session._variables.values()) {
+    for (const variable of this.session.variables.values()) {
       // Haven't thought about how to deal with this yet. Might be easy. PR welcome.
       if (variable.declarations.length !== 1) continue;
       const declaration = variable.declarations[0];
@@ -46,7 +48,7 @@ export class RefactorUnsafePlugin extends RefactorPlugin {
           const literalReplacement = parent.init;
           variable.references.forEach(ref => {
             // skip declaration
-            if (ref.node !== declaration.node) this.session.replace(ref.node, copy(literalReplacement))
+            if (ref.node !== declaration.node) this.session.replace(ref.node, copy(literalReplacement));
           });
         }
       }
@@ -55,16 +57,17 @@ export class RefactorUnsafePlugin extends RefactorPlugin {
   }
 
   removeDeadVariables() {
-    this.session.query('VariableDeclarator, FunctionDeclaration, ClassDeclaration').forEach(
-      (decl: VariableDeclarator | FunctionDeclaration | ClassDeclaration) => {
+    this.session
+      .query('VariableDeclarator, FunctionDeclaration, ClassDeclaration')
+      .forEach((decl: VariableDeclarator | FunctionDeclaration | ClassDeclaration) => {
         let name = decl.type === 'VariableDeclarator' ? decl.binding : decl.name;
 
         // TODO handle this at some point.
-        if (name.type === 'ArrayBinding' || name.type==='ObjectBinding') return;
+        if (name.type === 'ArrayBinding' || name.type === 'ObjectBinding') return;
 
         const lookup = this.session.lookupVariable(name);
         const scope = this.session.lookupScope(lookup) as Scope;
-        
+
         if (scope.type === ScopeType.GLOBAL) return;
 
         const reads = lookup.references.filter((ref: Reference) => {
@@ -109,10 +112,8 @@ export class RefactorUnsafePlugin extends RefactorPlugin {
           });
           this.session.delete(decl);
         }
-      },
-    );
+      });
     if (this.session.autoCleanup) this.session.cleanup();
     return this;
   }
-
 }

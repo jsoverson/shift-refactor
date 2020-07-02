@@ -17,13 +17,13 @@ import {
   ComputedMemberExpression,
   IdentifierExpression,
 } from 'shift-ast';
-import { SelectorOrNode, RefactorError } from './types';
-import { Scope } from 'shift-scope';
-import { IdGenerator } from './id-generator';
+import {SelectorOrNode, RefactorError} from './types';
+import {Scope} from 'shift-scope';
+import {IdGenerator} from './id-generator';
 import traverser from 'shift-traverser';
-import { mkdir } from 'fs';
+import {mkdir} from 'fs';
 
-const { query } = require('shift-query');
+const {query} = require('shift-query');
 
 export function copy(object: any) {
   return JSON.parse(JSON.stringify(object));
@@ -149,17 +149,24 @@ export function isDeepSimilar(a: any, b: any): boolean {
   return similar;
 }
 
-export function getRootIdentifier(expr: StaticMemberExpression | ComputedMemberExpression | StaticMemberAssignmentTarget | ComputedMemberAssignmentTarget | IdentifierExpression): IdentifierExpression {
+export function getRootIdentifier(
+  expr:
+    | StaticMemberExpression
+    | ComputedMemberExpression
+    | StaticMemberAssignmentTarget
+    | ComputedMemberAssignmentTarget
+    | IdentifierExpression,
+): IdentifierExpression {
   if (expr.type === 'IdentifierExpression') {
     return expr;
   } else {
     switch (expr.object.type) {
-      case 'IdentifierExpression': 
+      case 'IdentifierExpression':
         return expr.object;
       case 'ComputedMemberExpression':
       case 'StaticMemberExpression':
-        return getRootIdentifier(expr.object)
-      default: 
+        return getRootIdentifier(expr.object);
+      default:
         throw new Error('Can not get the identifier associated with the passed expression.');
     }
   }
