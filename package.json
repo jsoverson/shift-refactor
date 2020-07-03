@@ -41,6 +41,9 @@
     "shift-validator": "^5.0.0"
   },
   "devDependencies": {
+    "@microsoft/api-documenter": "^7.8.19",
+    "@microsoft/api-extractor": "^7.8.15",
+    "@microsoft/tsdoc": "^0.12.20",
     "@types/chai": "^4.2.11",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^7.0.2",
@@ -52,6 +55,8 @@
     "mocha": "^7.1.2",
     "prettier": "^1.18.2",
     "ts-node": "^8.10.1",
+    "typedoc": "^0.17.7",
+    "typedoc-plugin-markdown": "^2.3.1",
     "typescript": "^3.9.2"
   },
   "scripts": {
@@ -61,6 +66,9 @@
     "prepublishOnly": "npm run compile",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "watch": "tsc -w",
+    "generate-docs": "npm run compile && api-extractor run --local --verbose && api-documenter markdown -i temp -o new-docs",
+    "typedoc": "typedoc --hideSources --hideBreadcrumbs --excludePrivate --excludeNotExported --stripInternal --disableSources",
+    "test-examples": "npm run compile && api-extractor run --local --verbose && ts-node -O '{\"resolveJsonModule\":true}' test/doclint/examples.ts",
     "test": "mocha"
   },
   "author": "Jarrod Overson",

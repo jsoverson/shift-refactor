@@ -1,4 +1,4 @@
-import {RefactorSession} from '.';
+import { RefactorSession } from './refactor-session';
 
 export abstract class RefactorPlugin {
   session: RefactorSession;

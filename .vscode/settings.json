@@ -17,5 +17,8 @@
     "titleBar.inactiveBackground": "#1f2e3999",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
+  "mochaExplorer.files": "test/**/*.ts",
+  "mochaExplorer.require": "ts-node/register",
+  "mochaExplorer.debuggerConfig": "Debug Mocha Tests",
   "peacock.color": "#1f2e39"
 }

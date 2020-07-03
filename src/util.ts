@@ -17,13 +17,13 @@ import {
   ComputedMemberExpression,
   IdentifierExpression,
 } from 'shift-ast';
-import {SelectorOrNode, RefactorError} from './types';
-import {Scope} from 'shift-scope';
-import {IdGenerator} from './id-generator';
+import { SelectorOrNode, RefactorError } from './types';
+import { Scope } from 'shift-scope';
+import { IdGenerator } from './id-generator';
 import traverser from 'shift-traverser';
-import {mkdir} from 'fs';
+import { mkdir } from 'fs';
+import { query } from './query';
 
-const {query} = require('shift-query');
 
 export function copy(object: any) {
   return JSON.parse(JSON.stringify(object));
@@ -62,9 +62,15 @@ export function isLiteral(
   );
 }
 
-export function findNodes(ast: Node, input: SelectorOrNode): Node[] {
+export function findNodes(ast: Node[], input: SelectorOrNode): Node[] {
   if (isString(input)) return query(ast, input);
-  else if (isArray(input)) return input;
+  else if (isArray(input)) {
+    if (isString(input[0])) {
+      return (input as any).filter((x: string | Node): x is string => typeof x === 'string').flatMap((x: string) => query(ast, x))
+    } else {
+      return input as Node[];
+    }
+  }
   else if (isShiftNode(input)) return [input];
   else return [];
 }
@@ -116,13 +122,15 @@ export function renameScope(scope: Scope, idGenerator: IdGenerator, parentMap: W
   scope.children.forEach(_ => renameScope(_, idGenerator, parentMap));
 }
 
-export function buildParentMap(ast: Node) {
+export function buildParentMap(trees: Node[]) {
   const parentMap = new WeakMap();
-  traverser.traverse(ast, {
-    enter: (node: Node, parent: Node) => {
-      parentMap.set(node, parent);
-    },
-  });
+  trees.forEach(ast => {
+    traverser.traverse(ast, {
+      enter: (node: Node, parent: Node) => {
+        parentMap.set(node, parent);
+      },
+    });
+  })
   return parentMap;
 }
 
