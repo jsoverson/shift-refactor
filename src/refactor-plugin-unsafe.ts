@@ -6,14 +6,14 @@ import { copy, isLiteral, isStatement } from './util';
 
 export default function pluginUnsafe() {
   return {
-    findPureFunctionCandidates(this: RefactorSessionChainable, options?: PureFunctionAssessmentOptions) {
-      return new Map(
-        (this.query('FunctionDeclaration') as FunctionDeclaration[])
-          .map((fn: FunctionDeclaration) => new PureFunctionAssessment(fn, options))
-          .filter((assmt: PureFunctionAssessment) => assmt.verdict === PureFunctionVerdict.Probably)
-          .map((assmt: PureFunctionAssessment) => [assmt.node, assmt]),
-      );
-    },
+    // findPureFunctionCandidates(this: RefactorSessionChainable, options?: PureFunctionAssessmentOptions) {
+    //   return new Map(
+    //     (this.query('FunctionDeclaration') as FunctionDeclaration[])
+    //       .map((fn: FunctionDeclaration) => new PureFunctionAssessment(fn, options))
+    //       .filter((assmt: PureFunctionAssessment) => assmt.verdict === PureFunctionVerdict.Probably)
+    //       .map((assmt: PureFunctionAssessment) => [assmt.node, assmt]),
+    //   );
+    // },
 
     massRename(this: RefactorSessionChainable, namePairs: string[][]) {
       namePairs.forEach(([from, to]) => {
@@ -47,8 +47,8 @@ export default function pluginUnsafe() {
     },
 
     removeDeadVariables(this: RefactorSessionChainable) {
-      (this
-        .query('VariableDeclarator, FunctionDeclaration, ClassDeclaration') as (VariableDeclarator | FunctionDeclaration | ClassDeclaration)[])
+      this
+        .query('VariableDeclarator, FunctionDeclaration, ClassDeclaration')
         .forEach((decl: VariableDeclarator | FunctionDeclaration | ClassDeclaration) => {
           let nameNode = decl.type === 'VariableDeclarator' ? decl.binding : decl.name;
 

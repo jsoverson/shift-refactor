@@ -19,11 +19,11 @@ import {
 } from 'shift-ast';
 import { SelectorOrNode, RefactorError } from './types';
 import { Scope } from 'shift-scope';
-import { IdGenerator } from './id-generator';
+import { BaseIdGenerator } from './id-generator';
 import traverser from 'shift-traverser';
 import { mkdir } from 'fs';
 import { query } from './query';
-
+import { RefactorSession } from './refactor-session';
 
 export function copy(object: any) {
   return JSON.parse(JSON.stringify(object));
@@ -43,6 +43,9 @@ export function isShiftNode(input: any): input is Node {
 }
 export function isStatement(input: any): input is Statement {
   return input && input.type && input.type.match(/(Statement|Declaration)$/);
+}
+export function forceIntoArray<T>(input: T | T[]): T[] {
+  return isArray(input) ? input : [input];
 }
 
 export function isLiteral(
@@ -103,7 +106,7 @@ export function extractExpression(tree: Script) {
   }
 }
 
-export function renameScope(scope: Scope, idGenerator: IdGenerator, parentMap: WeakMap<Node, Node>) {
+export function renameScope(scope: Scope, idGenerator: BaseIdGenerator, parentMap: WeakMap<Node, Node>) {
   if (scope.type.name !== 'Global' && scope.type.name !== 'Script') {
     scope.variableList.forEach(variable => {
       if (variable.declarations.length === 0) return;
@@ -178,4 +181,9 @@ export function getRootIdentifier(
         throw new Error('Can not get the identifier associated with the passed expression.');
     }
   }
+}
+
+export function identityLogger<T>(x: T): T {
+  console.log(x);
+  return x;
 }

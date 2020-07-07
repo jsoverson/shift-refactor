@@ -19,6 +19,7 @@ export type Replacer = Function | Node | string;
 
 // Identifiers that are easy to reason about
 export type SimpleIdentifier = BindingIdentifier | IdentifierExpression | AssignmentTargetIdentifier;
+
 // Nodes containing a SimpleIdentifier that are similarly easy to reason about
 export type SimpleIdentifierOwner =
   | AssignmentExpression
@@ -27,3 +28,4 @@ export type SimpleIdentifierOwner =
   | FunctionDeclaration
   | FunctionExpression
   | VariableDeclarator;
+

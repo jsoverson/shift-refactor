@@ -1,35 +1,16 @@
-import {
-  Expression,
-  Node,
-  Statement
-} from 'shift-ast';
-import { Declaration, Reference } from 'shift-scope';
+import { Node } from 'shift-ast';
+import { Declaration, Reference, Variable } from 'shift-scope';
+import pluginCommon from './refactor-plugin-common';
+import pluginUnsafe from './refactor-plugin-unsafe';
 import { RefactorSession } from './refactor-session';
-import { Replacer, SimpleIdentifier, SimpleIdentifierOwner } from './types';
+import { Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from './types';
 
-// Plugin interface lovingly taken from https://github.com/gr2m/javascript-plugin-architecture-with-typescript-definitions/blob/master/src/index.ts
-
-type ApiExtension = { [key: string]: any };
-type TestPlugin = (instance: RefactorSessionChainable) => ApiExtension | undefined;
+// type ApiExtension = { [key: string]: any };
+// type RefactorPlugin = (instance: RefactorSessionChainable) => ApiExtension;
+type RefactorPlugin = (instance: RefactorSessionChainable) => any;
 type Constructor<T> = new (...args: any[]) => T;
 
-/**
- * @author https://stackoverflow.com/users/2887218/jcalz
- * @see https://stackoverflow.com/a/50375286/10325032
- */
-type UnionToIntersection<Union> = (Union extends any
-  ? (argument: Union) => void
-  : never) extends (argument: infer Intersection) => void // tslint:disable-line: no-unused
-  ? Intersection
-  : never;
-
-type AnyFunction = (...args: any) => any;
-
-type ReturnTypeOf<T extends AnyFunction | AnyFunction[]> = T extends AnyFunction
-  ? ReturnType<T>
-  : T extends AnyFunction[]
-  ? UnionToIntersection<ReturnType<T[number]>>
-  : never;
+export type $QueryInput = string | Node | Node[]
 
 /**
  * The Chainable Refactor interface
@@ -37,7 +18,7 @@ type ReturnTypeOf<T extends AnyFunction | AnyFunction[]> = T extends AnyFunction
  */
 export class RefactorSessionChainable {
   session: RefactorSession;
-  static plugins: TestPlugin[] = [];
+  static plugins: RefactorPlugin[] = [];
 
   constructor(session: RefactorSession) {
     this.session = session;
@@ -47,15 +28,34 @@ export class RefactorSessionChainable {
     });
   }
 
-  static with<S extends Constructor<any> & { plugins: any[] }, T extends TestPlugin | TestPlugin[]>(this: S, plugin: T) {
+  static with<S extends Constructor<any> & { plugins: RefactorPlugin[] }, T extends RefactorPlugin>
+    (this: S, plugin: T) {
     const currentPlugins = this.plugins;
 
     const BaseWithPlugins = class extends this {
       static plugins = currentPlugins.concat(plugin);
+      static with = RefactorSessionChainable.with;
+      static create = RefactorSessionChainable.create;
     };
 
-    type Extension = ReturnTypeOf<T>;
-    return BaseWithPlugins as typeof BaseWithPlugins & Constructor<Extension>;
+    return BaseWithPlugins as typeof BaseWithPlugins & Constructor<ReturnType<T>>;
+  }
+
+  static create(session: RefactorSession) {
+    const chainable = new RefactorChainableWithPlugins(session);
+    const prototype = Object.getPrototypeOf(chainable);
+
+    const $query = function (selector: $QueryInput) {
+      const subSession = session.subSession(selector);
+      return RefactorChainableWithPlugins.create(subSession);
+    }
+
+    const hybridObject = Object.assign($query, chainable);
+    Object.setPrototypeOf(hybridObject, prototype);
+    Object.defineProperty(hybridObject, 'length', {
+      get() { return session.length }
+    });
+    return hybridObject;
   }
 
   get root(): Node {
@@ -70,51 +70,158 @@ export class RefactorSessionChainable {
     return this.session.nodes;
   }
 
-  subSession(query: string | string[]) {
-    return this.session.subSession(query);
-  }
-
   rename(newName: string) {
-    return this.session.rename(this.nodes, newName);
+    this.session.rename(this.nodes, newName);
+    return this;
   }
 
+  /**
+  * Delete nodes
+  *
+  * @example
+  *
+  * ```js
+  * const { refactor } = require('shift-refactor');
+  *
+  * $script = refactor('foo();bar();');
+  *
+  * $script('ExpressionStatement[expression.callee.name="foo"]').delete();
+  *
+  * ```
+  * 
+  * @assert
+  * 
+  * ```js
+  * assert.equal($script.generate(), 'bar();\n');
+  * ```
+  * 
+  */
   delete() {
-    return this.session.delete(this.nodes);
+    this.session.delete(this.nodes);
+    return this;
   }
 
-  replace(replacer: Replacer) {
-    return this.session.replace(this.nodes, replacer);
+  replace(replacer: Replacer): RefactorSessionChainable {
+    this.session.replace(this.nodes, replacer);
+    return this;
   }
 
-  replaceAsync(replacer: (node: Node) => Promise<Node | string>) {
+  /**
+   * Async version of .replace() that supports asynchronous replacer functions
+   *
+   * @example
+   *
+   * ```js
+   * const { refactor } = require('shift-refactor');
+   *
+   * $script = refactor('var a = "hello";');
+   * 
+   * async function work() {
+   *  await $script('LiteralStringExpression').replaceAsync(
+   *    (node) => Promise.resolve(`"goodbye"`)
+   *  )
+   * }
+   *
+   * ```
+   * @assert 
+   * 
+   * ```js
+   * // TODO this doesn't work, every async function is an instance of Promise
+   * work().then(_ => assert.equal($script.generate(), 'var a = "goodbye";'));
+   * ```
+   */
+  replaceAsync(replacer: (node: Node) => Promise<string | Node>) {
     return this.session.replaceAsync(this.nodes, replacer);
   }
 
-  replaceRecursive(replacer: Replacer) {
-    return this.session.replaceRecursive(this.nodes, replacer);
+
+  /**
+   * Recursively replaces child nodes until no nodes have been replaced.
+   * 
+   * @example
+   *
+   * ```js
+   * const { refactor } = require('shift-refactor');
+   * const Shift = require('shift-ast');
+   * 
+   * const src = `
+   * 1 + 2 + 3
+   * `
+   *
+   * $script = refactor(src);
+   *
+   * $script.replaceChildren(
+   *  'BinaryExpression[left.type=LiteralNumericExpression][right.type=LiteralNumericExpression]',
+   *  (node) => new Shift.LiteralNumericExpression({value: node.left.value + node.right.value})
+   * );
+   * ```
+   * 
+   * @assert
+   * 
+   * ```js
+   * assert.equal($script.generate().trim(), '6;');
+   * ```
+   * 
+   */
+  replaceChildren(query: SelectorOrNode, replacer: Replacer): RefactorSessionChainable {
+    this.session.replaceRecursive(query, replacer);
+    return this;
   }
 
   first(): Node {
     return this.session.first();
   }
 
-  parents(): Node[] {
-    return this.session.findParents(this.nodes);
+  /**
+  * Retrieve parent node(s)
+  * 
+  * @example
+  *
+  * ```js
+  * const { refactor } = require('shift-refactor');
+  * 
+  * const src = `
+  * var a = 1, b = 2;
+  * `
+  *
+  * $script = refactor(src);
+  * const declarators = $script('VariableDeclarator');
+  * const declaration = declarators.parents();
+  * ```
+  * 
+  * @assert
+  * 
+  * ```js
+  * assert.equal(declaration.length, 1);
+  * ```
+  * 
+  */
+
+  parents() {
+    return this.$(this.session.findParents(this.nodes));
   }
 
-  prepend(replacer: Replacer) {
-    return this.session.prepend(this.nodes, replacer);
+  // TODO appendInto prependInto to auto-insert into body blocks
+
+  prepend(replacer: Replacer): RefactorSessionChainable {
+    this.session.prepend(this.nodes, replacer);
+    return this;
   }
 
-  append(replacer: Replacer) {
-    return this.session.append(this.nodes, replacer);
+  append(replacer: Replacer): RefactorSessionChainable {
+    this.session.append(this.nodes, replacer);
+    return this;
+  }
+
+  $(queryOrNodes: SelectorOrNode) {
+    return RefactorSessionChainable.create(this.session.subSession(queryOrNodes));
   }
 
   query(selector: string | string[]) {
-    return this.session.query(selector);
+    return this.$(this.session.query(selector));
   }
 
-  forEach(iterator: (node: any) => any) {
+  forEach(iterator: (node: any) => any): RefactorSessionChainable {
     this.nodes.forEach(iterator);
     return this;
   }
@@ -124,39 +231,57 @@ export class RefactorSessionChainable {
     return this.query(selectorOrNode);
   }
 
-  findMatchingExpression(sampleSrc: string): Expression[] {
-    return this.session.findMatchingExpression(sampleSrc);
+  findMatchingExpression(sampleSrc: string) {
+    return this.$(this.session.findMatchingExpression(sampleSrc));
   }
 
-  findMatchingStatement(sampleSrc: string): Statement[] {
-    return this.session.findMatchingStatement(sampleSrc);
+  findMatchingStatement(sampleSrc: string) {
+    return this.$(this.session.findMatchingStatement(sampleSrc));
   }
 
   findOne(selectorOrNode: string) {
-    return this.session.findOne(selectorOrNode);
+    return this.$(this.session.findOne(selectorOrNode));
   }
 
-  findReferences(): Reference[] {
+  references(): Reference[] {
     return this.session.findReferences(this.first() as SimpleIdentifier | SimpleIdentifierOwner);
   }
 
-  findDeclarations(): Declaration[] {
+  declarations(): Declaration[] {
     return this.session.findDeclarations(this.first() as SimpleIdentifier | SimpleIdentifierOwner)
   }
 
-  closest(closestSelector: string): Node[] {
-    return this.session.closest(this.nodes, closestSelector);
+  closest(closestSelector: string) {
+    return this.$(this.session.closest(this.nodes, closestSelector));
   }
 
-  lookupVariable() {
-    return this.session.lookupVariable(this.first() as SimpleIdentifierOwner | SimpleIdentifierOwner[] | SimpleIdentifier | SimpleIdentifier[])
+  lookupVariable(): Variable {
+    const id = this.first() as SimpleIdentifierOwner | SimpleIdentifierOwner[] | SimpleIdentifier | SimpleIdentifier[];
+    return this.session.lookupVariable(id);
   }
 
-  lookupVariableByName(name: string) {
+  lookupVariableByName(name: string): Variable[] {
     return this.session.lookupVariableByName(name);
   }
 
-  print(ast?: Node) {
-    return this.session.print();
+  generate() {
+    return this.session.generate();
   }
+
+  print() {
+    return this.session.generate();
+  }
+
+}
+
+export const RefactorChainableWithPlugins = RefactorSessionChainable.with(pluginUnsafe).with(pluginCommon);
+
+/**
+ * Initialization of a RefactorSession via the chainable API
+ *
+ * @alpha
+ */
+export function refactor(input: string | Node, { autoCleanup = true } = {}) {
+  const globalSession = new RefactorSession(input, { autoCleanup });
+  return RefactorSessionChainable.with(pluginUnsafe).with(pluginCommon).create(globalSession);
 }

@@ -1,29 +1,21 @@
+import DEBUG from 'debug';
 import {
-  ComputedMemberAssignmentTarget,
+  BinaryExpression, ComputedMemberAssignmentTarget,
   ComputedMemberExpression,
   ComputedPropertyName,
-  IdentifierExpression,
-  LiteralBooleanExpression,
-  LiteralStringExpression,
-  StaticMemberAssignmentTarget,
-  StaticMemberExpression,
-  StaticPropertyName,
-  VariableDeclarator,
-  Node,
-  BinaryExpression,
   ConditionalExpression,
-  FunctionBody,
-  DebuggerStatement,
-  ReturnStatement,
+  DebuggerStatement, FunctionBody, IdentifierExpression,
+  LiteralBooleanExpression,
+  Node,
+  ReturnStatement, StaticMemberAssignmentTarget,
+  StaticMemberExpression,
+  StaticPropertyName
 } from 'shift-ast';
 import { Declaration, Reference } from 'shift-scope';
 import { default as isValid } from 'shift-validator';
-import { IdGenerator, MemorableIdGenerator } from './id-generator';
-import { RefactorPlugin } from './refactor-plugin';
-import { SelectorOrNode } from './types';
-import { findNodes, renameScope, isLiteral } from './util';
-import DEBUG from 'debug';
+import { MemorableIdGenerator } from './id-generator';
 import { RefactorSessionChainable } from './refactor-session-chainable';
+import { isLiteral, renameScope } from './util';
 
 const debug = DEBUG('shift-refactor:common');
 
@@ -168,9 +160,9 @@ export default function pluginCommon() {
       return this.session.conditionalCleanup();
     },
 
-    normalizeIdentifiers(this: RefactorSessionChainable, seed = 1, _Generator: new (seed: number) => IdGenerator = MemorableIdGenerator) {
+    normalizeIdentifiers(this: RefactorSessionChainable, seed = 1) {
       const lookupTable = this.session.getLookupTable();
-      const idGenerator = new _Generator(seed);
+      const idGenerator = new MemorableIdGenerator(seed);
       renameScope(lookupTable.scope, idGenerator, this.session.parentMap);
       return this.session.conditionalCleanup();
     }

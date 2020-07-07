@@ -1,12 +1,21 @@
 
 import * as tsdoc from '@microsoft/api-extractor-model/node_modules/@microsoft/tsdoc';
+import { TSDocEmitter, StringBuilder } from '@microsoft/api-extractor-model/node_modules/@microsoft/tsdoc';
 
 import api from '../../temp/shift-refactor.api.json';
 import vm from 'vm';
+import { fail } from 'assert';
+import { identityLogger } from '../../src/util';
 
-const API = (api as unknown) as IApiItemJson;
+const customConfiguration: tsdoc.TSDocConfiguration = new tsdoc.TSDocConfiguration();
+customConfiguration.addTagDefinitions([
+  new tsdoc.TSDocTagDefinition({
+    tagName: '@assert',
+    syntaxKind: tsdoc.TSDocTagSyntaxKind.BlockTag
+  })
+]);
 
-const parser = new tsdoc.TSDocParser();
+const parser = new tsdoc.TSDocParser(customConfiguration);
 
 interface IApiItemJson {
   kind: string;
@@ -16,17 +25,17 @@ interface IApiItemJson {
 }
 
 (function main() {
-  const success = walk([api]);
-  if (!success) throw new Error('not ok: tests failed');
+  const failures = walk([api]);
+  if (failures > 0) throw new Error(`not ok: ${failures} tests failed`);
   else console.log('ok: examples passed');
 })();
 
 function walk(nodes: IApiItemJson[]) {
-  let success = true;
+  let failures = 0;
   nodes.forEach((node: IApiItemJson) => {
     if (node.docComment) {
-      const src = extractCode(node.docComment);
-      const assertion = extractCode(node.docComment, '@assert');
+      const src = extractFencedBlock(node.docComment);
+      const assertion = extractCodeOnlyBlock(node.docComment);
       if (src) {
         const localizedSrc = src.replace('shift-refactor', '../../');
         const wrappedSrc = `const assert = require('assert');\n${localizedSrc};\n ${assertion}`
@@ -38,19 +47,19 @@ function walk(nodes: IApiItemJson[]) {
           console.log(`>>>> Error in ${node.canonicalReference}`);
           console.log(e);
           console.log(`${wrappedSrc}`);
-          success = false;
+          failures++;
         }
       }
     }
     if (node.members) {
-      const result = walk(node.members);
-      if (success) success = result;
+      const childFailures = walk(node.members);
+      failures += childFailures;
     }
   });
-  return success;
+  return failures;
 }
 
-function extractCode(tsdoc: string, type = '@example') {
+function extractFencedBlock(tsdoc: string, type = '@example') {
   const { docComment } = parser.parseString(tsdoc);
   const example = docComment.customBlocks.find(x => x.blockTag.tagName === type);
   if (example) {
@@ -61,4 +70,14 @@ function extractCode(tsdoc: string, type = '@example') {
   }
 }
 
-// function runExample()
+function extractCodeOnlyBlock(tsdoc: string, type = '@assert') {
+  const { docComment } = parser.parseString(tsdoc);
+  const block = docComment.customBlocks.find(x => x.blockTag.tagName === type) as tsdoc.DocBlock;
+  if (block) {
+    const fencedCode = block.content.nodes.find(
+      (contentNode: tsdoc.DocNode) => contentNode.kind === 'FencedCode',
+    ) as tsdoc.DocFencedCode;
+    return fencedCode.code;
+  }
+}
+

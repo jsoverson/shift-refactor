@@ -3,14 +3,10 @@ import DEBUG from 'debug';
 import deepEqual from 'fast-deep-equal';
 import {
   BindingIdentifier,
-
   Expression,
-
   FunctionDeclaration,
   IdentifierExpression,
   Node,
-
-
   Statement
 } from 'shift-ast';
 import { parseScript } from 'shift-parser';
@@ -30,9 +26,11 @@ import {
   isFunction,
   isShiftNode,
   isStatement,
-  isString
+  isString,
+  identityLogger
 } from './util';
 import { waterfallMap } from './waterfall';
+import { RefactorSessionChainable } from './refactor-session-chainable';
 
 /**
  * Parse JavaScript source with shift-parser
@@ -55,12 +53,11 @@ export interface RefactorConfig {
  * The main Shift Refactor class
  * @public
  */
-export class RefactorSession implements ArrayLike<Node> {
+export class RefactorSession {
   nodes: Node[];
   _root?: Node;
   globalSession: RefactorSession;
   autoCleanup = true;
-  readonly [n: number]: Node;
 
   private dirty = false;
 
@@ -124,23 +121,16 @@ export class RefactorSession implements ArrayLike<Node> {
     return this.nodes.length;
   }
 
-  subSession(query: string | string[]) {
-    const nodes = findNodes(this.nodes, query);
+  $(querySessionOrNodes: SelectorOrNode | RefactorSession) {
+    return this.subSession(querySessionOrNodes);
+  }
+
+  subSession(querySessionOrNodes: SelectorOrNode | RefactorSession) {
+    const nodes = querySessionOrNodes instanceof RefactorSession ? querySessionOrNodes.nodes : findNodes(this.nodes, querySessionOrNodes);
     const subSession = new RefactorSession(nodes, { parentSession: this });
     return subSession;
   }
 
-  /**
-   * Register plugin
-   *
-   * @remarks
-   *
-   * Experimental.
-   *
-   * @param Plugin - The Refactor plugin
-   *
-   * @alpha
-   */
   use<T extends RefactorPlugin>(Plugin: new (session: RefactorSession) => T) {
     const plugin = new Plugin(this);
     plugin.register();
@@ -150,15 +140,6 @@ export class RefactorSession implements ArrayLike<Node> {
     this.parentMap = buildParentMap(this.nodes);
   }
 
-  /**
-   * Rename Identifiers
-   *
-   * @remarks
-   *
-   * Only works on Identifier nodes. Other nodes are ignored.
-   *
-   * @param selectorOrNode - A selector or node
-   */
   rename(selectorOrNode: SelectorOrNode, newName: string) {
     const lookupTable = this.getLookupTable();
 
@@ -174,38 +155,11 @@ export class RefactorSession implements ArrayLike<Node> {
     return this;
   }
 
-  /**
-   * Rename all declarations and references of a Variable lookup to newName
-   *
-   * @param lookup
-   * @param newName
-   *
-   * @internal
-   */
   renameInPlace(lookup: Variable, newName: string) {
     if (!lookup || !newName) return;
     lookup.declarations.forEach(decl => ((decl.node as BindingIdentifier).name = newName));
     lookup.references.forEach(ref => ((ref.node as IdentifierExpression).name = newName));
   }
-
-  /**
-   * Delete nodes
-   *
-   * @example
-   *
-   * ```js
-   * const { RefactorSession, parse } = require('shift-refactor');
-   *
-   * $script = new RefactorSession(parse('foo();bar();'));
-   *
-   * $script.delete('ExpressionStatement[expression.callee.name="foo"]');
-   *
-   * ```
-   * 
-   * @assert
-   * 
-   * assert.equal($script.print(), 'bar();\n');
-   */
 
   delete(selectorOrNode: SelectorOrNode = this.nodes) {
     const nodes = findNodes(this.nodes, selectorOrNode);
@@ -215,12 +169,6 @@ export class RefactorSession implements ArrayLike<Node> {
     return this.conditionalCleanup();
   }
 
-  /**
-   * Replace nodes
-   *
-   * @param selectorOrNode
-   * @param replacer - JavaScript source, a Node, or a function that returns source or a node
-   */
   replace(selectorOrNode: SelectorOrNode, replacer: Replacer) {
     const nodes = findNodes(this.nodes, selectorOrNode);
 
@@ -268,29 +216,7 @@ export class RefactorSession implements ArrayLike<Node> {
     return replaced.filter((wasReplaced: any) => wasReplaced).length;
   }
 
-  /**
-   * Async version of .replace() that supports asynchronous replacer functions
-   *
-   * @example
-   *
-   * ```js
-   * const { RefactorSession, parse } = require('shift-refactor');
-   *
-   * $script = new RefactorSession(parse('var a = "hello";'));
-   * 
-   * async function work() {
-   *  await $script.replaceAsync(
-   *    'LiteralStringExpression',
-   *    async (node) => Promise.resolve(`"goodbye"`)
-   *  )
-   * }
-   *
-   * ```
-   * @assert 
-   * 
-   * assert(work() instanceof Promise);
-   */
-  async replaceAsync(selectorOrNode: SelectorOrNode, replacer: (node: Node) => Promise<Node | string>) {
+  async replaceAsync(selectorOrNode: SelectorOrNode, replacer: (node: Node) => Promise<Node | string>): Promise<number> {
     const nodes = findNodes(this.nodes, selectorOrNode);
 
     if (!isFunction(replacer)) {
@@ -323,34 +249,9 @@ export class RefactorSession implements ArrayLike<Node> {
 
     this.conditionalCleanup();
 
-    return promiseResults.filter(result => result);
+    return promiseResults.filter(result => result).length;
   }
 
-  /**
-   * Recursively replaces nodes until no nodes have been replaced.
-   * 
-   * @example
-   *
-   * ```js
-   * const { RefactorSession, parse } = require('shift-refactor');
-   * const Shift = require('shift-ast');
-   * 
-   * const src = `
-   * 1 + 2 + 3
-   * `
-   *
-   * $script = new RefactorSession(parse(src));
-   *
-   * $script.replaceRecursive(
-   *  'BinaryExpression[left.type=LiteralNumericExpression][right.type=LiteralNumericExpression]',
-   *  (node) => new Shift.LiteralNumericExpression({value: node.left.value + node.right.value})
-   * );
-   * ```
-   * 
-   * @assert
-   * 
-   * assert.equal($script.print().trim(), '6;');
-   */
   replaceRecursive(selectorOrNode: SelectorOrNode, replacer: Replacer) {
     const nodesReplaced = this.replace(selectorOrNode, replacer);
     this.cleanup();
@@ -395,38 +296,17 @@ export class RefactorSession implements ArrayLike<Node> {
     return this.conditionalCleanup();
   }
 
-  /**
-  * Find the parent of a node
-  * 
-  * @example
-  *
-  * ```js
-  * const { RefactorSession, parse } = require('shift-refactor');
-  * const Shift = require('shift-ast');
-  * 
-  * const src = `
-  * 1 + 2 + 3
-  * `
-  *
-  * $script = new RefactorSession(parse(src));
-  * ```
-  * 
-  * @assert
-  * 
-  * assert.equal($script.print().trim(), '6;');
-  */
   findParents(selectorOrNode: SelectorOrNode): Node[] {
     const nodes = findNodes(this.nodes, selectorOrNode);
-    const a = this.parentMap.get(nodes[0]);
-    return nodes.map(node => this.parentMap.get(node)).filter((node): node is Node => !!node);
+    return nodes.map(identityLogger).map(node => this.globalSession.parentMap.get(node)).map(identityLogger).filter((node): node is Node => !!node);
   }
 
   prepend(selectorOrNode: SelectorOrNode, replacer: Replacer) {
-    return this.insert(selectorOrNode, replacer, false);
+    return this.globalSession.insert(selectorOrNode, replacer, false);
   }
 
   append(selectorOrNode: SelectorOrNode, replacer: Replacer) {
-    return this.insert(selectorOrNode, replacer, true);
+    return this.globalSession.insert(selectorOrNode, replacer, true);
   }
 
   _queueDeletion(node: Node): void {
@@ -647,11 +527,16 @@ export class RefactorSession implements ArrayLike<Node> {
     return Array.from(varSet) as Variable[];
   }
 
-  print(ast?: Node) {
+  generate(ast?: Node) {
     if (this.isDirty())
       throw new RefactorError(
         'refactor .print() called with a dirty AST. This is almost always a bug. Call .cleanup() before printing.',
       );
     return codegen(ast || this.first(), new FormattedCodeGen());
   }
+}
+
+export class GlobalSession extends RefactorSession {
+  type = 'GlobalSession';
+
 }

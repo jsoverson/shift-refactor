@@ -1,4 +1,4 @@
-import { refactor } from '../src/';
+import { refactor } from '../src/refactor-session-chainable';
 import { parseScript as parse } from 'shift-parser';
 import Shift from 'shift-ast';
 
@@ -23,7 +23,7 @@ describe('Regression', function () {
       let ast = parse(`var a = 2, b = 3;`);
       const $script = refactor(ast);
       function danger() {
-        $script('VariableDeclarator').replaceRecursive((node: any) => node);
+        $script.replaceChildren('VariableDeclarator', (node: any) => node);
       }
       chai.expect(danger).to.not.throw();
     });

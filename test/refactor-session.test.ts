@@ -124,13 +124,23 @@ describe('RefactorSession', () => {
   });
 
   describe('subSession', () => {
-    it('should scope a refactor session to child nodes', async () => {
+    it('should scope a refactor session to child nodes via a query', async () => {
       let r = new RefactorSession(`b;function foo(a){return d}`);
       let rootIdExprs = r.query('IdentifierExpression');
       expect(rootIdExprs.length).to.equal(2);
       let callExpression = r.subSession('FunctionDeclaration');
       expect(callExpression.nodes.length).to.equal(1);
       let idExpr = callExpression.query('IdentifierExpression');
+      expect(idExpr.length).to.equal(1);
+    });
+    it('should scope a refactor session to nodes passed as arguments', async () => {
+      let r = new RefactorSession(`b;function foo(a){return d}`);
+      let rootIdExprs = r.query('IdentifierExpression');
+      expect(rootIdExprs.length).to.equal(2);
+      let callExpressions = r.subSession('FunctionDeclaration');
+      expect(callExpressions.nodes.length).to.equal(1);
+      const subSession = r.subSession(callExpressions);
+      let idExpr = subSession.query('IdentifierExpression');
       expect(idExpr.length).to.equal(1);
     });
   });
@@ -287,13 +297,13 @@ describe('RefactorSession', () => {
     it('should print a structurally equivalent program', () => {
       let ast = parse(`var a = 2; function foo(){var a = 4}`);
       const refactor = new RefactorSession(ast);
-      const newSource = refactor.print();
+      const newSource = refactor.generate();
       expect(ast).to.deep.equal(parse(newSource));
     });
     it('should take in and print any ast', () => {
       let ast = parse(`var a = 2; function foo(){var a = 4}`);
       const refactor = new RefactorSession(ast);
-      const newSource = refactor.print(new LiteralStringExpression({ value: 'hi' }));
+      const newSource = refactor.generate(new LiteralStringExpression({ value: 'hi' }));
       expect(newSource).to.equal('"hi"');
     });
   })
