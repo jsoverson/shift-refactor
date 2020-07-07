@@ -14,7 +14,6 @@ import shiftScope, { Declaration, Reference, Scope, ScopeLookup, Variable } from
 import traverser from 'shift-traverser';
 import { default as isValid } from 'shift-validator';
 import { query } from './query';
-import { RefactorPlugin } from './refactor-plugin';
 import { RefactorError, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from './types';
 import {
   buildParentMap,
@@ -26,11 +25,9 @@ import {
   isFunction,
   isShiftNode,
   isStatement,
-  isString,
-  identityLogger
+  isString
 } from './util';
 import { waterfallMap } from './waterfall';
-import { RefactorSessionChainable } from './refactor-session-chainable';
 
 /**
  * Parse JavaScript source with shift-parser
@@ -56,65 +53,29 @@ export interface RefactorConfig {
 export class RefactorSession {
   nodes: Node[];
   _root?: Node;
-  globalSession: RefactorSession;
-  autoCleanup = true;
+  globalSession: GlobalState;
 
-  private dirty = false;
 
-  scopeMap: WeakMap<Variable, Scope> = new WeakMap();
-  scopeOwnerMap: WeakMap<Node, Scope> = new WeakMap();
-  parentMap: WeakMap<Node, Node> = new WeakMap();
-  variables: Set<Variable> = new Set();
-
-  private replacements = new WeakMap();
-  private deletions = new WeakSet();
-  private insertions = new WeakMap();
-
-  private lookupTable: ScopeLookup | undefined;
-
-  constructor(sourceOrNodes: string | Node | Node[], config: RefactorConfig = {}) {
+  constructor(sourceOrNodes: Node | Node[] | string, globalSession?: GlobalState) {
     let nodes: Node[], tree: Node;
-    if (config.parentSession) {
-      this.globalSession = config.parentSession.globalSession;
-      if (isString(sourceOrNodes)) throw new Error('Can not initialize child RefactorSession with a new AST');
-      if (isArray(sourceOrNodes)) {
-        //@ts-ignore : as any[] cast tracker https://github.com/microsoft/TypeScript/issues/36390
-        nodes = (sourceOrNodes as any[]).filter((x: string | Node): x is Node => typeof x !== 'string');
-      } else {
-        nodes = [sourceOrNodes];
-      }
+    if (!globalSession) {
+      if (typeof sourceOrNodes === 'string' || !isArray(sourceOrNodes)) this.globalSession = new GlobalState(sourceOrNodes);
+      else throw new Error('Only source or a single Script/Module node can be passed as input');
     } else {
-      if (isString(sourceOrNodes)) {
-        try {
-          tree = parseScript(sourceOrNodes);
-          this._root = tree;
-        } catch (e) {
-          throw new RefactorError(`Could not parse passed source: ${e}`);
-        }
-        nodes = [tree];
-      } else {
-        if (isArray(sourceOrNodes)) throw new RefactorError('Must initialize root session with a JavaScript source program (JS source or single Node)');
-        nodes = [sourceOrNodes];
-        this._root = sourceOrNodes;
-      }
-      this.globalSession = this;
+      this.globalSession = globalSession;
+    }
+
+    if (isArray(sourceOrNodes)) {
+      nodes = (sourceOrNodes as any[]).filter((x: string | Node): x is Node => typeof x !== 'string');
+    } else {
+      if (!isString(sourceOrNodes)) nodes = [sourceOrNodes];
+      else nodes = [this.globalSession.root];
     }
     this.nodes = nodes;
-
-    if (config.autoCleanup) this.autoCleanup = config.autoCleanup;
-
-    this.rebuildParentMap();
-
-    this.getLookupTable();
   }
 
   get root(): Node {
-    if (this._root) {
-      return this._root;
-    } else {
-      if (this === this.globalSession && !this._root) throw new Error('why');
-      return this.globalSession.root;
-    }
+    return this.globalSession.root;
   }
 
   get length(): number {
@@ -127,21 +88,12 @@ export class RefactorSession {
 
   subSession(querySessionOrNodes: SelectorOrNode | RefactorSession) {
     const nodes = querySessionOrNodes instanceof RefactorSession ? querySessionOrNodes.nodes : findNodes(this.nodes, querySessionOrNodes);
-    const subSession = new RefactorSession(nodes, { parentSession: this });
+    const subSession = new RefactorSession(nodes, this.globalSession);
     return subSession;
   }
 
-  use<T extends RefactorPlugin>(Plugin: new (session: RefactorSession) => T) {
-    const plugin = new Plugin(this);
-    plugin.register();
-  }
-
-  private rebuildParentMap() {
-    this.parentMap = buildParentMap(this.nodes);
-  }
-
   rename(selectorOrNode: SelectorOrNode, newName: string) {
-    const lookupTable = this.getLookupTable();
+    const lookupTable = this.globalSession.getLookupTable();
 
     const nodes = findNodes(this.nodes, selectorOrNode);
 
@@ -164,9 +116,9 @@ export class RefactorSession {
   delete(selectorOrNode: SelectorOrNode = this.nodes) {
     const nodes = findNodes(this.nodes, selectorOrNode);
     if (nodes.length > 0) {
-      nodes.forEach((node: Node) => this._queueDeletion(node));
+      nodes.forEach((node: Node) => this.globalSession._queueDeletion(node));
     }
-    return this.conditionalCleanup();
+    return this.globalSession.conditionalCleanup();
   }
 
   replace(selectorOrNode: SelectorOrNode, replacer: Replacer) {
@@ -205,14 +157,14 @@ export class RefactorSession {
         }
       }
       if (node && replacement !== node) {
-        this._queueReplacement(node, replacement);
+        this.globalSession._queueReplacement(node, replacement);
         return true;
       } else {
         return false;
       }
     });
 
-    this.conditionalCleanup();
+    this.globalSession.conditionalCleanup();
     return replaced.filter((wasReplaced: any) => wasReplaced).length;
   }
 
@@ -240,21 +192,21 @@ export class RefactorSession {
       }
 
       if (node && replacement !== node) {
-        this._queueReplacement(node, replacement);
+        this.globalSession._queueReplacement(node, replacement);
         return true;
       } else {
         return false;
       }
     });
 
-    this.conditionalCleanup();
+    this.globalSession.conditionalCleanup();
 
     return promiseResults.filter(result => result).length;
   }
 
   replaceRecursive(selectorOrNode: SelectorOrNode, replacer: Replacer) {
     const nodesReplaced = this.replace(selectorOrNode, replacer);
-    this.cleanup();
+    this.globalSession.cleanup();
     if (nodesReplaced > 0) this.replaceRecursive(selectorOrNode, replacer);
     return this;
   }
@@ -263,42 +215,8 @@ export class RefactorSession {
     return this.nodes[0];
   }
 
-  private insert(selectorOrNode: SelectorOrNode, replacer: Replacer, after = false): ReturnType<typeof RefactorSession.prototype.conditionalCleanup> {
-    if (this !== this.globalSession) {
-      return this.globalSession.insert(selectorOrNode, replacer, after);
-    }
-    const nodes = findNodes(this.nodes, selectorOrNode);
-
-    let insertion: Node | null = null;
-    let getInsertion = (program: Replacer, node: Node) => {
-      if (isFunction(program)) {
-        const result = program(node);
-        if (isShiftNode(result)) return result;
-        return parseScript(result).statements[0];
-      } else {
-        if (insertion) return copy(insertion);
-        if (isShiftNode(program)) return copy(program);
-        return (insertion = parseScript(program).statements[0]);
-      }
-    };
-
-    nodes.forEach((node: Node) => {
-      if (!isStatement(node)) throw new RefactorError('Can only insert before or after Statements or Declarations');
-      this.isDirty(true);
-      const toInsert = getInsertion(replacer, node);
-      if (!isStatement(toInsert)) throw new RefactorError('Will not insert anything but a Statement or Declaration');
-      this.insertions.set(node, {
-        after,
-        statement: getInsertion(replacer, node),
-      });
-    });
-
-    return this.conditionalCleanup();
-  }
-
   findParents(selectorOrNode: SelectorOrNode): Node[] {
-    const nodes = findNodes(this.nodes, selectorOrNode);
-    return nodes.map(identityLogger).map(node => this.globalSession.parentMap.get(node)).map(identityLogger).filter((node): node is Node => !!node);
+    return this.globalSession.findParents(selectorOrNode);
   }
 
   prepend(selectorOrNode: SelectorOrNode, replacer: Replacer) {
@@ -307,103 +225,6 @@ export class RefactorSession {
 
   append(selectorOrNode: SelectorOrNode, replacer: Replacer) {
     return this.globalSession.insert(selectorOrNode, replacer, true);
-  }
-
-  _queueDeletion(node: Node): void {
-    if (this !== this.globalSession) {
-      return this.globalSession._queueDeletion(node);
-    }
-    this.isDirty(true);
-    this.deletions.add(node);
-  }
-
-  _queueReplacement(from: Node, to: Node): void {
-    if (this !== this.globalSession) {
-      return this.globalSession._queueReplacement(from, to);
-    }
-    this.isDirty(true);
-    this.replacements.set(from, to);
-  }
-
-  getLookupTable(): ScopeLookup {
-    if (this.lookupTable) return this.lookupTable;
-    const globalScope = shiftScope(this.root);
-    this.lookupTable = new ScopeLookup(globalScope);
-    this._rebuildScopeMap();
-    return this.lookupTable;
-  }
-
-  _rebuildScopeMap() {
-    const lookupTable = this.getLookupTable();
-    this.scopeMap = new WeakMap();
-    this.variables = new Set();
-    const recurse = (scope: Scope) => {
-      this.scopeOwnerMap.set(scope.astNode, scope);
-      scope.variableList.forEach((variable: Variable) => {
-        this.variables.add(variable);
-        this.scopeMap.set(variable, scope);
-      });
-      scope.children.forEach(recurse);
-    };
-    recurse(lookupTable.scope);
-  }
-
-  isDirty(dirty?: boolean) {
-    if (dirty !== undefined) this.dirty = dirty;
-    return this.dirty;
-  }
-
-  validate() {
-    return isValid(this.nodes);
-  }
-
-  conditionalCleanup() {
-    if (this.autoCleanup) this.cleanup();
-    return this;
-  }
-
-  cleanup(): RefactorSession {
-    if (this !== this.globalSession) {
-      return this.globalSession.cleanup();
-    }
-    if (!this.isDirty()) return this;
-    const _this = this;
-    const result = this.nodes.map(node => traverser.replace(node, {
-      leave: function (node: Node, parent: Node) {
-        if (node.type === 'VariableDeclarationStatement') {
-          if (node.declaration.declarators.length === 0) return this.remove();
-        }
-        if (_this.replacements.has(node)) {
-          const newNode = _this.replacements.get(node);
-          _this.replacements.delete(node);
-          return newNode;
-        }
-        if (_this.insertions.has(node)) {
-          if (isStatement(node)) {
-            const insertion = _this.insertions.get(node);
-            if ('statements' in parent) {
-              let statementIndex = parent.statements.indexOf(node);
-              if (insertion.after) statementIndex++;
-              parent.statements.splice(statementIndex, 0, insertion.statement);
-              _this.insertions.delete(node);
-            } else {
-              debug(`Tried to insert ${node.type} but I lost track of my parent block :-(`);
-            }
-          } else {
-            debug(`Tried to insert a non-Statement (${node.type}). Skipping.`);
-          }
-        }
-        if (_this.deletions.has(node)) {
-          _this.replacements.delete(node);
-          this.remove();
-        }
-      },
-    }));
-    this.lookupTable = undefined;
-    this.rebuildParentMap();
-    this.isDirty(false);
-    this.nodes = result;
-    return this;
   }
 
   query(selector: string | string[]) {
@@ -443,21 +264,21 @@ export class RefactorSession {
     return [];
   }
 
+  findReferences(node: SimpleIdentifier | SimpleIdentifierOwner): Reference[] {
+    const lookup = this.globalSession.lookupVariable(node);
+    return lookup.references;
+  }
+
+  findDeclarations(node: SimpleIdentifier | SimpleIdentifierOwner): Declaration[] {
+    const lookup = this.globalSession.lookupVariable(node);
+    return lookup.declarations;
+  }
+
   findOne(selectorOrNode: string) {
     const nodes = this.query(selectorOrNode);
     if (nodes.length !== 1)
       throw new Error(`findOne('${selectorOrNode}') found ${nodes.length} nodes. If this is intentional, use .find()`);
     return nodes[0];
-  }
-
-  findReferences(node: SimpleIdentifier | SimpleIdentifierOwner): Reference[] {
-    const lookup = this.lookupVariable(node);
-    return lookup.references;
-  }
-
-  findDeclarations(node: SimpleIdentifier | SimpleIdentifierOwner): Declaration[] {
-    const lookup = this.lookupVariable(node);
-    return lookup.declarations;
   }
 
   closest(originSelector: SelectorOrNode, closestSelector: string): Node[] {
@@ -474,12 +295,75 @@ export class RefactorSession {
     return nodes.flatMap((node: Node) => recurse(node, closestSelector));
   }
 
+  cleanup() {
+    this.globalSession.cleanup();
+    return this;
+  }
+
+  generate(ast?: Node) {
+    const generator = new FormattedCodeGen();
+    return codegen(ast || this.first(), generator);
+  }
+}
+
+export class GlobalState {
+  autoCleanup = true;
+
+  private dirty = false;
+  private _root: Node;
+
+
+  scopeMap: WeakMap<Variable, Scope> = new WeakMap();
+  scopeOwnerMap: WeakMap<Node, Scope> = new WeakMap();
+  parentMap: WeakMap<Node, Node> = new WeakMap();
+  variables: Set<Variable> = new Set();
+
+  private replacements = new WeakMap();
+  private deletions = new WeakSet();
+  private insertions = new WeakMap();
+
+  private lookupTable: ScopeLookup | undefined;
+
+  constructor(sourceOrNode: string | Node, config: RefactorConfig = {}) {
+    let tree;
+    if (isString(sourceOrNode)) {
+      try {
+        tree = parseScript(sourceOrNode);
+      } catch (e) {
+        throw new RefactorError(`Could not parse passed source: ${e}`);
+      }
+    } else {
+      tree = sourceOrNode;
+    }
+    this._root = tree;
+
+    if (config.autoCleanup) this.autoCleanup = config.autoCleanup;
+
+    this.rebuildParentMap();
+
+    this.getLookupTable();
+  }
+
+  get root(): Node {
+    return this._root;
+  }
+
   lookupScope(variableLookup: Variable | Variable[] | SimpleIdentifierOwner | SimpleIdentifierOwner[] | SimpleIdentifier | SimpleIdentifier[]) {
     if (isArray(variableLookup)) variableLookup = variableLookup[0];
 
     if (isShiftNode(variableLookup)) variableLookup = this.lookupVariable(variableLookup);
 
     return this.scopeMap.get(variableLookup);
+  }
+
+  findReferences(node: SimpleIdentifier | SimpleIdentifierOwner): Reference[] {
+    const lookup = this.lookupVariable(node);
+    return lookup.references;
+  }
+
+  findDeclarations(node: SimpleIdentifier | SimpleIdentifierOwner): Declaration[] {
+    const lookup = this.lookupVariable(node);
+    return lookup.declarations;
   }
 
   getInnerScope(node: FunctionDeclaration) {
@@ -527,16 +411,139 @@ export class RefactorSession {
     return Array.from(varSet) as Variable[];
   }
 
+  _queueDeletion(node: Node): void {
+    this.isDirty(true);
+    this.deletions.add(node);
+  }
+
+  _queueReplacement(from: Node, to: Node): void {
+    this.isDirty(true);
+    this.replacements.set(from, to);
+  }
+
+  getLookupTable(): ScopeLookup {
+    if (this.lookupTable) return this.lookupTable;
+    const globalScope = shiftScope(this.root);
+    this.lookupTable = new ScopeLookup(globalScope);
+    this._rebuildScopeMap();
+    return this.lookupTable;
+  }
+
+  _rebuildScopeMap() {
+    const lookupTable = this.getLookupTable();
+    this.scopeMap = new WeakMap();
+    this.variables = new Set();
+    const recurse = (scope: Scope) => {
+      this.scopeOwnerMap.set(scope.astNode, scope);
+      scope.variableList.forEach((variable: Variable) => {
+        this.variables.add(variable);
+        this.scopeMap.set(variable, scope);
+      });
+      scope.children.forEach(recurse);
+    };
+    recurse(lookupTable.scope);
+  }
+
+  isDirty(dirty?: boolean) {
+    if (dirty !== undefined) this.dirty = dirty;
+    return this.dirty;
+  }
+
+  validate() {
+    return isValid(this.root);
+  }
+
+  conditionalCleanup() {
+    if (this.autoCleanup) this.cleanup();
+    return this;
+  }
+
+  cleanup() {
+    if (!this.isDirty()) return this;
+    const _this = this;
+    const result = traverser.replace(this.root, {
+      leave: function (node: Node, parent: Node) {
+        if (node.type === 'VariableDeclarationStatement') {
+          if (node.declaration.declarators.length === 0) return this.remove();
+        }
+        if (_this.replacements.has(node)) {
+          const newNode = _this.replacements.get(node);
+          _this.replacements.delete(node);
+          return newNode;
+        }
+        if (_this.insertions.has(node)) {
+          if (isStatement(node)) {
+            const insertion = _this.insertions.get(node);
+            if ('statements' in parent) {
+              let statementIndex = parent.statements.indexOf(node);
+              if (insertion.after) statementIndex++;
+              parent.statements.splice(statementIndex, 0, insertion.statement);
+              _this.insertions.delete(node);
+            } else {
+              debug(`Tried to insert ${node.type} but I lost track of my parent block :-(`);
+            }
+          } else {
+            debug(`Tried to insert a non-Statement (${node.type}). Skipping.`);
+          }
+        }
+        if (_this.deletions.has(node)) {
+          _this.replacements.delete(node);
+          this.remove();
+        }
+      },
+    });
+    this.lookupTable = undefined;
+    this.rebuildParentMap();
+    this.isDirty(false);
+    this._root = result;
+    return this;
+  }
+
+  insert(selectorOrNode: SelectorOrNode, replacer: Replacer, after = false): ReturnType<typeof GlobalState.prototype.conditionalCleanup> {
+    const nodes = findNodes([this._root], selectorOrNode);
+
+    let insertion: Node | null = null;
+    let getInsertion = (program: Replacer, node: Node) => {
+      if (isFunction(program)) {
+        const result = program(node);
+        if (isShiftNode(result)) return result;
+        return parseScript(result).statements[0];
+      } else {
+        if (insertion) return copy(insertion);
+        if (isShiftNode(program)) return copy(program);
+        return (insertion = parseScript(program).statements[0]);
+      }
+    };
+
+    nodes.forEach((node: Node) => {
+      if (!isStatement(node)) throw new RefactorError('Can only insert before or after Statements or Declarations');
+      this.isDirty(true);
+      const toInsert = getInsertion(replacer, node);
+      if (!isStatement(toInsert)) throw new RefactorError('Will not insert anything but a Statement or Declaration');
+      this.insertions.set(node, {
+        after,
+        statement: getInsertion(replacer, node),
+      });
+    });
+
+    return this.conditionalCleanup();
+  }
+
+  findParents(selectorOrNode: SelectorOrNode): Node[] {
+    const nodes = findNodes([this._root], selectorOrNode);
+    return nodes.map(node => this.parentMap.get(node)).filter((node): node is Node => !!node);
+  }
+
   generate(ast?: Node) {
     if (this.isDirty())
       throw new RefactorError(
         'refactor .print() called with a dirty AST. This is almost always a bug. Call .cleanup() before printing.',
       );
-    return codegen(ast || this.first(), new FormattedCodeGen());
+    return codegen(ast || this._root, new FormattedCodeGen());
   }
-}
 
-export class GlobalSession extends RefactorSession {
-  type = 'GlobalSession';
+  private rebuildParentMap() {
+    this.parentMap = buildParentMap(this._root);
+  }
 
 }

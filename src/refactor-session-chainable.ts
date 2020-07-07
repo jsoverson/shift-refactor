@@ -2,7 +2,7 @@ import { Node } from 'shift-ast';
 import { Declaration, Reference, Variable } from 'shift-scope';
 import pluginCommon from './refactor-plugin-common';
 import pluginUnsafe from './refactor-plugin-unsafe';
-import { RefactorSession } from './refactor-session';
+import { RefactorSession, GlobalState } from './refactor-session';
 import { Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from './types';
 
 // type ApiExtension = { [key: string]: any };
@@ -243,12 +243,12 @@ export class RefactorSessionChainable {
     return this.$(this.session.findOne(selectorOrNode));
   }
 
-  references(): Reference[] {
-    return this.session.findReferences(this.first() as SimpleIdentifier | SimpleIdentifierOwner);
+  references(): Reference[][] {
+    return this.nodes.map(node => this.session.globalSession.findReferences(node as SimpleIdentifier | SimpleIdentifierOwner));
   }
 
-  declarations(): Declaration[] {
-    return this.session.findDeclarations(this.first() as SimpleIdentifier | SimpleIdentifierOwner)
+  declarations(): Declaration[][] {
+    return this.nodes.map(node => this.session.globalSession.findDeclarations(node as SimpleIdentifier | SimpleIdentifierOwner));
   }
 
   closest(closestSelector: string) {
@@ -257,11 +257,11 @@ export class RefactorSessionChainable {
 
   lookupVariable(): Variable {
     const id = this.first() as SimpleIdentifierOwner | SimpleIdentifierOwner[] | SimpleIdentifier | SimpleIdentifier[];
-    return this.session.lookupVariable(id);
+    return this.session.globalSession.lookupVariable(id);
   }
 
   lookupVariableByName(name: string): Variable[] {
-    return this.session.lookupVariableByName(name);
+    return this.session.globalSession.lookupVariableByName(name);
   }
 
   generate() {
@@ -282,6 +282,7 @@ export const RefactorChainableWithPlugins = RefactorSessionChainable.with(plugin
  * @alpha
  */
 export function refactor(input: string | Node, { autoCleanup = true } = {}) {
-  const globalSession = new RefactorSession(input, { autoCleanup });
-  return RefactorSessionChainable.with(pluginUnsafe).with(pluginCommon).create(globalSession);
+  const globalSession = new GlobalState(input, { autoCleanup });
+  const refactorSession = new RefactorSession(globalSession.root, globalSession);
+  return RefactorSessionChainable.with(pluginUnsafe).with(pluginCommon).create(refactorSession);
 }

@@ -10,7 +10,7 @@ import {
   BindingIdentifier,
 } from 'shift-ast';
 import { parseScript as parse, parseScript } from 'shift-parser';
-import { RefactorSession } from '../src/refactor-session';
+import { RefactorSession, GlobalState } from '../src/refactor-session';
 import { RefactorError } from '../src/types';
 import { describe } from 'mocha';
 //@ts-ignore VSCode bug? VSC is complaining about this import but TypeScript is fine with it.
@@ -327,9 +327,9 @@ describe('RefactorSession', () => {
     it('should return variables by name', () => {
       let ast = parse(`var a = 2; var b = 3; (function(b){ var a = "foo" }())`);
       const refactor = new RefactorSession(ast);
-      const varsA = refactor.lookupVariableByName('a');
+      const varsA = refactor.globalSession.lookupVariableByName('a');
       expect(varsA).to.be.lengthOf(2);
-      const varsB = refactor.lookupVariableByName('b');
+      const varsB = refactor.globalSession.lookupVariableByName('b');
       expect(varsB).to.be.lengthOf(2);
     });
   });
@@ -338,7 +338,7 @@ describe('RefactorSession', () => {
     let ast = parse(`var a = 2; function foo(){var b = 4}`);
     const refactor = new RefactorSession(ast);
     const innerBinding = refactor.query('BindingIdentifier[name="b"]') as BindingIdentifier[];
-    const lookup = refactor.lookupVariable(innerBinding);
+    const lookup = refactor.globalSession.lookupVariable(innerBinding);
     expect(lookup).to.be.ok;
     expect(lookup.declarations.length).to.equal(1);
   });
@@ -346,13 +346,13 @@ describe('RefactorSession', () => {
     let ast = parse(`var a = 2; function foo(){var b = 4}`);
     const refactor = new RefactorSession(ast);
     const innerBinding = refactor.query('BindingIdentifier[name="b"]') as BindingIdentifier[];
-    const lookup = refactor.lookupScope(innerBinding) as Scope;
+    const lookup = refactor.globalSession.lookupScope(innerBinding) as Scope;
     expect(lookup).to.be.ok;
     expect(lookup.astNode).to.equal(ast.statements[1]);
   });
   it('.cleanup()', () => {
     let ast = parse(``);
     const refactor = new RefactorSession(ast);
-    expect(() => refactor.cleanup).to.not.throw();
+    expect(() => refactor.cleanup()).to.not.throw();
   });
 });

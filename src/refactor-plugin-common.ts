@@ -127,7 +127,7 @@ export default function pluginCommon() {
     },
 
     unshorten(this: RefactorSessionChainable) {
-      const lookupTable = this.session.getLookupTable();
+      const lookupTable = this.session.globalSession.getLookupTable();
 
       this.nodes.forEach((node: Node) => {
         if (node.type !== 'VariableDeclarator') {
@@ -143,9 +143,9 @@ export default function pluginCommon() {
         const lookup = lookupTable.variableMap.get(from);
         lookup[0].declarations.forEach((decl: Declaration) => (decl.node.name = to.name));
         lookup[0].references.forEach((ref: Reference) => (ref.node.name = to.name));
-        this.session._queueDeletion(node);
+        this.session.globalSession._queueDeletion(node);
       });
-      return this.session.conditionalCleanup();
+      return this.session.globalSession.conditionalCleanup();
     },
 
     expandBoolean(this: RefactorSessionChainable) {
@@ -157,14 +157,14 @@ export default function pluginCommon() {
         `UnaryExpression[operator="!"][operand.value=1]`,
         () => new LiteralBooleanExpression({ value: false }),
       );
-      return this.session.conditionalCleanup();
+      return this.session.globalSession.conditionalCleanup();
     },
 
     normalizeIdentifiers(this: RefactorSessionChainable, seed = 1) {
-      const lookupTable = this.session.getLookupTable();
+      const lookupTable = this.session.globalSession.getLookupTable();
       const idGenerator = new MemorableIdGenerator(seed);
-      renameScope(lookupTable.scope, idGenerator, this.session.parentMap);
-      return this.session.conditionalCleanup();
+      renameScope(lookupTable.scope, idGenerator, this.session.globalSession.parentMap);
+      return this.session.globalSession.conditionalCleanup();
     }
 
   }

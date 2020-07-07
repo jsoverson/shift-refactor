@@ -17,12 +17,12 @@ export default function pluginUnsafe() {
 
     massRename(this: RefactorSessionChainable, namePairs: string[][]) {
       namePairs.forEach(([from, to]) => {
-        this.session.lookupVariableByName(from).forEach((lookup: Variable) => this.session.renameInPlace(lookup, to));
+        this.lookupVariableByName(from).forEach((lookup: Variable) => this.session.renameInPlace(lookup, to));
       });
     },
 
     inlineLiterals(this: RefactorSessionChainable) {
-      for (const variable of this.session.variables.values()) {
+      for (const variable of this.session.globalSession.variables.values()) {
         // Haven't thought about how to deal with this yet. Might be easy. PR welcome.
         if (variable.declarations.length !== 1) continue;
         const declaration = variable.declarations[0];
@@ -43,7 +43,7 @@ export default function pluginUnsafe() {
           }
         }
       }
-      this.session.conditionalCleanup();
+      this.session.globalSession.conditionalCleanup();
     },
 
     removeDeadVariables(this: RefactorSessionChainable) {
@@ -55,8 +55,8 @@ export default function pluginUnsafe() {
           // TODO handle this at some point.
           if (nameNode.type === 'ArrayBinding' || nameNode.type === 'ObjectBinding') return;
 
-          const lookup = this.session.lookupVariable(nameNode);
-          const scope = this.session.lookupScope(lookup) as Scope;
+          const lookup = this.session.globalSession.lookupVariable(nameNode);
+          const scope = this.session.globalSession.lookupScope(lookup) as Scope;
 
           if (scope.type === ScopeType.GLOBAL) return;
 
@@ -103,7 +103,7 @@ export default function pluginUnsafe() {
             this.session.delete(decl);
           }
         });
-      return this.session.conditionalCleanup();
+      return this.session.globalSession.conditionalCleanup();
     }
   }
 

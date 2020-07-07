@@ -125,15 +125,13 @@ export function renameScope(scope: Scope, idGenerator: BaseIdGenerator, parentMa
   scope.children.forEach(_ => renameScope(_, idGenerator, parentMap));
 }
 
-export function buildParentMap(trees: Node[]) {
+export function buildParentMap(tree: Node) {
   const parentMap = new WeakMap();
-  trees.forEach(ast => {
-    traverser.traverse(ast, {
-      enter: (node: Node, parent: Node) => {
-        parentMap.set(node, parent);
-      },
-    });
-  })
+  traverser.traverse(tree, {
+    enter: (node: Node, parent: Node) => {
+      parentMap.set(node, parent);
+    },
+  });
   return parentMap;
 }
 

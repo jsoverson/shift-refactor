@@ -1,8 +1,12 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import { parseScript as parse } from 'shift-parser';
+import { parseScript } from 'shift-parser';
 import { refactor } from '../src/refactor-session-chainable';
-import { LiteralNumericExpression } from 'shift-ast';
+import { LiteralNumericExpression, Script } from 'shift-ast';
+
+function parse(src: string): Script {
+  return parseScript(src);
+}
 
 describe('chainable interface', () => {
   it('should be able to take a single source as input', () => {
@@ -28,7 +32,7 @@ describe('chainable interface', () => {
     const $script = refactor(src);
     $script('CallExpression').closest(':statement').prepend(`a()`);
 
-    expect($script.root).to.deep.equal(parse(`a();b();`));
+    expect($script.root).to.deep.equal(parse(`a();b(1);`));
   })
   it('should have .forEach to iterate over nodes', () => {
     const src = `var a = [1,2,3,4]`;
