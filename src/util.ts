@@ -143,15 +143,17 @@ export function isMemberExpression(node: Node): node is ComputedMemberExpression
   return node.type === 'StaticMemberExpression' || node.type === 'ComputedMemberExpression';
 }
 
-export function isDeepSimilar(a: any, b: any): boolean {
+export function isDeepSimilar(partial: any, actual: any): boolean {
   let similar = false;
-  for (let key in a) {
-    if (isArray(a[key])) {
-      similar = key in b && isArray(b[key]) ? (a[key].length === 0 ? true : isDeepSimilar(a[key], b[key])) : false;
-    } else if (typeof a[key] === 'object') {
-      similar = key in b ? isDeepSimilar(a[key], b[key]) : false;
+  if (partial === undefined) return true;
+  if (partial === null && actual === null) return true;
+  for (let key in partial) {
+    if (isArray(partial[key])) {
+      similar = key in actual && isArray(actual[key]) ? (partial[key].length === 0 ? true : isDeepSimilar(partial[key], actual[key])) : false;
+    } else if (typeof partial[key] === 'object') {
+      similar = key in actual ? isDeepSimilar(partial[key], actual[key]) : false;
     } else {
-      similar = a[key] === b[key];
+      similar = partial[key] === actual[key];
     }
     if (!similar) break;
   }

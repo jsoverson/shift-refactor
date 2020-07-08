@@ -10,7 +10,7 @@ import {
   BindingIdentifier,
 } from 'shift-ast';
 import { parseScript as parse, parseScript } from 'shift-parser';
-import { RefactorSession, GlobalState } from '../src/refactor-session';
+import { RefactorSession } from '../src/refactor-session';
 import { RefactorError } from '../src/types';
 import { describe } from 'mocha';
 //@ts-ignore VSCode bug? VSC is complaining about this import but TypeScript is fine with it.
@@ -275,17 +275,31 @@ describe('RefactorSession', () => {
     const fn = refactor.findOne(`FunctionDeclaration[name.name="foo"]`) as FunctionDeclaration;
     expect(refactor.findDeclarations(fn).length).to.equal(1);
   });
-  it('should find nodes by sample source', () => {
-    const $script = new RefactorSession(`function foo(){}\nfoo(); a = foo(); b = foo(2); b = foo();`);
-    let nodes: Node[] = $script.findMatchingExpression('b = foo()');
-    expect(nodes.length).to.equal(1);
-    //@ts-ignore blindly poking deep
-    expect(nodes[0]).to.deep.equal($script.first().statements[4].expression);
-    nodes = $script.findMatchingStatement('b = foo()');
-    expect(nodes.length).to.equal(1);
-    //@ts-ignore blindly poking deep
-    expect(nodes[0]).to.deep.equal($script.first().statements[4]);
-  });
+  describe('.findMatchingExpression()', () => {
+    it('should find nodes by complete sample source', () => {
+      const $script = new RefactorSession(`function foo(){}\nfoo(); a = foo(); b = foo(2); b = foo();`);
+      let nodes: Node[] = $script.findMatchingExpression('b = foo()');
+      expect(nodes.length).to.equal(1);
+      //@ts-ignore blindly poking deeply
+      expect(nodes[0]).to.deep.equal($script.first().statements[4].expression);
+    });
+  })
+  describe('.findMatchingStatement()', () => {
+    it('should find nodes by complete sample source', () => {
+      const $script = new RefactorSession(`function foo(){}\nfoo(); a = foo(); b = foo(2); b = foo();`);
+      let nodes = $script.findMatchingStatement('b = foo(2)');
+      expect(nodes.length).to.equal(1);
+      //@ts-ignore blindly poking deeply
+      expect(nodes[0]).to.deep.equal($script.first().statements[3]);
+    });
+    it('should find nodes by partial sample source', () => {
+      const $script = new RefactorSession(`function foo(a,b){ return a+b;}\n function bar(){}`);
+      let nodes = $script.findMatchingStatement('function foo(a,b){}');
+      expect(nodes.length).to.equal(1);
+      //@ts-ignore blindly poking deeply
+      expect(nodes[0]).to.deep.equal($script.first().statements[0]);
+    });
+  })
   it('.queryFrom()', () => {
     let ast = parse(`var a = 2; function foo(){var a = 4}`);
     const refactor = new RefactorSession(ast);
@@ -297,13 +311,13 @@ describe('RefactorSession', () => {
     it('should print a structurally equivalent program', () => {
       let ast = parse(`var a = 2; function foo(){var a = 4}`);
       const refactor = new RefactorSession(ast);
-      const newSource = refactor.generate();
+      const newSource = refactor.print();
       expect(ast).to.deep.equal(parse(newSource));
     });
     it('should take in and print any ast', () => {
       let ast = parse(`var a = 2; function foo(){var a = 4}`);
       const refactor = new RefactorSession(ast);
-      const newSource = refactor.generate(new LiteralStringExpression({ value: 'hi' }));
+      const newSource = refactor.print(new LiteralStringExpression({ value: 'hi' }));
       expect(newSource).to.equal('"hi"');
     });
   })
@@ -321,6 +335,18 @@ describe('RefactorSession', () => {
       const innerBinding = refactor.query('BindingIdentifier[name="b"]');
       const parentStatement = refactor.closest(innerBinding, ':statement');
       expect(parentStatement.length).to.equal(1);
+    });
+    it('should find all selected nodes\' parents', () => {
+      let ast = parse(`function someFunction() {
+        interestingFunction();
+        }
+        function otherFunction() {
+        interestingFunction();
+        }`);
+      const refactor = new RefactorSession(ast);
+      const calls = refactor.query('CallExpression[callee.name="interestingFunction"]');
+      const decls = refactor.closest(calls, ':statement');
+      expect(decls.length).to.equal(2);
     });
   })
   describe('lookupVariableByName', function () {

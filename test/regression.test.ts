@@ -2,7 +2,7 @@ import { refactor } from '../src/refactor-session-chainable';
 import { parseScript as parse } from 'shift-parser';
 import Shift from 'shift-ast';
 
-import chai from 'chai';
+import { expect } from 'chai';
 describe('Regression', function () {
   describe('https://github.com/jsoverson/shift-refactor/issues/3', () => {
     it('inserts should not mess up deletes', () => {
@@ -12,9 +12,9 @@ describe('Regression', function () {
       const a = $script('VariableDeclarationStatement');
       $script('VariableDeclarationStatement').delete();
       const b = $script('VariableDeclarationStatement');
-      chai.expect($script.first()).to.deep.equal(parse('test()'));
-      chai.expect(a.length).to.equal(1);
-      chai.expect(b.length).to.equal(0);
+      expect($script.first()).to.deep.equal(parse('test()'));
+      expect(a.length).to.equal(1);
+      expect(b.length).to.equal(0);
     });
   });
 
@@ -25,7 +25,16 @@ describe('Regression', function () {
       function danger() {
         $script.replaceChildren('VariableDeclarator', (node: any) => node);
       }
-      chai.expect(danger).to.not.throw();
+      expect(danger).to.not.throw();
+    });
+  });
+
+  describe('https://github.com/jsoverson/shift-refactor/issues/11', () => {
+    it('single strings in replacement functions should not be parsed as directives', () => {
+      let ast = parse(`var a = "foo";`);
+      const $script = refactor(ast);
+      $script('LiteralStringExpression').replace('"bar"');
+      expect($script.root).to.deep.equal(parse('var a = "bar"'));
     });
   });
 });

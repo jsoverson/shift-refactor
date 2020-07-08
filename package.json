@@ -35,7 +35,7 @@
     "shift-ast": "^6.1.0",
     "shift-parser": "^7.0.0",
     "shift-printer": "^1.0.1",
-    "shift-query": "^1.0.0",
+    "shift-query": "^1.0.2",
     "shift-scope": "^4.0.0",
     "shift-traverser": "^1.0.0",
     "shift-validator": "^5.0.0"
@@ -50,14 +50,16 @@
     "@types/multimap": "^1.1.1",
     "@types/node": "^13.13.5",
     "@types/seedrandom": "^2.4.28",
+    "assert-diff": "^3.0.1",
     "chai": "^4.2.0",
     "eslint": "^6.1.0",
+    "find-root": "^1.1.0",
     "mocha": "^7.1.2",
     "prettier": "^1.18.2",
     "ts-node": "^8.10.1",
     "typedoc": "^0.17.7",
     "typedoc-plugin-markdown": "^2.3.1",
-    "typescript": "^3.9.2"
+    "typescript": "^3.9.4"
   },
   "scripts": {
     "build": "tsc",
@@ -66,9 +68,11 @@
     "prepublishOnly": "npm run compile",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "watch": "tsc -w",
-    "generate-docs": "npm run compile && api-extractor run --local --verbose && api-documenter markdown -i temp -o new-docs",
+    "generate-docs": "npm run api-extractor && api-documenter markdown -i temp -o new-docs",
     "typedoc": "typedoc --hideSources --hideBreadcrumbs --excludePrivate --excludeNotExported --stripInternal --disableSources",
-    "test-examples": "npm run compile && api-extractor run --local --verbose && ts-node -O '{\"resolveJsonModule\":true}' test/doclint/examples.ts",
+    "api-extractor": "npm run compile && api-extractor run --local --verbose",
+    "docrunner": "ts-node -O '{\"resolveJsonModule\":true}' test/docrunner/examples.ts",
+    "test-examples": "npm run api-extractor && npm run docrunner",
     "test": "mocha"
   },
   "author": "Jarrod Overson",
