@@ -98,7 +98,7 @@ const names = $bindingIdentifiers.map(node => node.name);
 
 ### Methods
 <% const members = exports['shift-refactor!RefactorSessionChainable:class'].members.filter(m => m.kind !== 'Constructor').sort((a,b) => a.name.localeCompare(b.name));%><% members.forEach((member) => {%>
-- [`<%= callSignature(member)%>`](<%= linkify(callSignature(member)) %>)<%});%>
+- [`<%= callSignature(member)%>`](#<%= linkify(callSignature(member)) %>)<%});%>
 <% members.forEach((member) => {%>
 #### `<%= callSignature(member) %>`
 
