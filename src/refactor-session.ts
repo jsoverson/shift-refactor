@@ -13,8 +13,8 @@ import {
 import { parseScript } from 'shift-parser';
 import { Declaration, Reference, Variable } from 'shift-scope';
 import { GlobalState } from './global-state';
-import { query } from './query';
-import { RefactorError, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from './types';
+import { query } from './misc/query';
+import { RefactorError, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner, AsyncReplacer } from './misc/types';
 import {
   copy,
   extractExpression,
@@ -26,29 +26,19 @@ import {
   isStatement,
   isString,
   isDeepSimilar
-} from './util';
-import { waterfallMap } from './waterfall';
-
-/**
- * Parse JavaScript source with shift-parser
- *
- * @param src - JavaScript source
- * @returns Shift AST
- *
- * @public
- */
-export const parse = parseScript;
+} from './misc/util';
+import { waterfallMap } from './misc/waterfall';
 
 const debug = DEBUG('shift-refactor');
 
-export interface GlobalStateOptions {
-  autoCleanup?: boolean;
-  parentSession?: RefactorSession;
-}
-
 /**
- * The main Shift Refactor class
- * @public
+ * The Shift Refactor class that manages 
+ * 
+ * @deprecated
+ * This was the original interface for shift-refactor pre-1.0. It remains similarly usable but is no longer intended to be instantiated directly.
+ * Extend the chainable interface when necessary and use refactor() to instantiate. If a use case is not covered, submit an issue.
+ * 
+ * @internal
  */
 export class RefactorSession {
   nodes: Node[];
@@ -120,7 +110,7 @@ export class RefactorSession {
     return this.globalSession.conditionalCleanup();
   }
 
-  replace(selectorOrNode: SelectorOrNode, replacer: Replacer) {
+  replace(selectorOrNode: SelectorOrNode, replacer: Replacer | AsyncReplacer) {
     const nodes = findNodes(this.nodes, selectorOrNode);
 
     const replacementScript = typeof replacer === 'string' ? parseScript(replacer) : null;
@@ -129,7 +119,7 @@ export class RefactorSession {
       let replacement = null;
       if (isFunction(replacer)) {
         const rv = replacer(node);
-        if (rv && typeof rv.then === 'function') {
+        if (rv && rv instanceof Promise) {
           throw new RefactorError(`Promise returned from replacer function, use .replaceAsync() instead.`);
         }
         if (isShiftNode(rv)) {
@@ -170,7 +160,7 @@ export class RefactorSession {
     return replaced.filter((wasReplaced: any) => wasReplaced).length;
   }
 
-  async replaceAsync(selectorOrNode: SelectorOrNode, replacer: (node: Node) => Promise<Node | string>): Promise<number> {
+  async replaceAsync(selectorOrNode: SelectorOrNode, replacer: AsyncReplacer): Promise<number> {
     const nodes = findNodes(this.nodes, selectorOrNode);
 
     if (!isFunction(replacer)) {

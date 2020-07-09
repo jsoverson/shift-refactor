@@ -1,0 +1,3001 @@
+{
+  "metadata": {
+    "toolPackage": "shift-refactor",
+    "toolVersion": "0.3.1",
+    "schemaVersion": 1003,
+    "oldestForwardsCompatibleVersion": 1001
+  },
+  "kind": "Package",
+  "canonicalReference": "shift-refactor!",
+  "docComment": "",
+  "name": "shift-refactor",
+  "members": [
+    {
+      "kind": "EntryPoint",
+      "canonicalReference": "shift-refactor!",
+      "name": "",
+      "members": [
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "shift-refactor!AsyncReplacer:type",
+          "docComment": "/**\n * Async version of Replacer\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type AsyncReplacer = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Replacer",
+              "canonicalReference": "shift-refactor!Replacer:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | ((node: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | string>)"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "AsyncReplacer",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "shift-refactor!GlobalState:class",
+          "docComment": "/**\n * Global State object for a script. Manages the root node, insertions, deletions, and replacements. All queries start from a global state and subqueries are child nodes.\n *\n * @remarks\n *\n * Most users won't need to instantiate this directly. Access an instance via `.globalSession` on any refactor query instance.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class GlobalState "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "GlobalState",
+          "members": [
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#_queueDeletion:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_queueDeletion(node: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "node",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "_queueDeletion"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#_queueReplacement:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_queueReplacement(from: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", to: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "from",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "to",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                }
+              ],
+              "name": "_queueReplacement"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#_rebuildScopeMap:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_rebuildScopeMap(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "_rebuildScopeMap"
+            },
+            {
+              "kind": "Constructor",
+              "canonicalReference": "shift-refactor!GlobalState:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `GlobalState` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(sourceOrNode: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", config?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "GlobalStateOptions",
+                  "canonicalReference": "shift-refactor!GlobalStateOptions:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "sourceOrNode",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  }
+                },
+                {
+                  "parameterName": "config",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 4,
+                    "endIndex": 5
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!GlobalState#autoCleanup:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "autoCleanup: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "autoCleanup",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#cleanup:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "cleanup(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "cleanup"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#conditionalCleanup:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "conditionalCleanup(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "conditionalCleanup"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#findDeclarations:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "findDeclarations(node: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifier",
+                  "canonicalReference": "shift-refactor!SimpleIdentifier:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifierOwner",
+                  "canonicalReference": "shift-refactor!SimpleIdentifierOwner:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Declaration",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Declaration:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "node",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  }
+                }
+              ],
+              "name": "findDeclarations"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#findParents:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "findParents(selectorOrNode: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SelectorOrNode",
+                  "canonicalReference": "shift-refactor!SelectorOrNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "selectorOrNode",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "findParents"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#findReferences:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "findReferences(node: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifier",
+                  "canonicalReference": "shift-refactor!SimpleIdentifier:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifierOwner",
+                  "canonicalReference": "shift-refactor!SimpleIdentifierOwner:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Reference",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Reference:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "node",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  }
+                }
+              ],
+              "name": "findReferences"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#generate:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "generate(ast?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "ast",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "generate"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#getInnerScope:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getInnerScope(node: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "FunctionDeclaration",
+                  "canonicalReference": "shift-ast!FunctionDeclaration:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Scope",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Scope:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "node",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getInnerScope"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#getLookupTable:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getLookupTable(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ScopeLookup",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".ScopeLookup:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getLookupTable"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#insert:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "insert(selectorOrNode: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SelectorOrNode",
+                  "canonicalReference": "shift-refactor!SelectorOrNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", replacer: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Replacer",
+                  "canonicalReference": "shift-refactor!Replacer:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", after?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReturnType",
+                  "canonicalReference": "!ReturnType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "GlobalState.prototype.conditionalCleanup",
+                  "canonicalReference": "shift-refactor!GlobalState#conditionalCleanup:member"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 11
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "selectorOrNode",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "replacer",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                },
+                {
+                  "parameterName": "after",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  }
+                }
+              ],
+              "name": "insert"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#isDirty:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isDirty(dirty?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "dirty",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "isDirty"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#lookupScope:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "lookupScope(variableLookup: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifierOwner",
+                  "canonicalReference": "shift-refactor!SimpleIdentifierOwner:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifierOwner",
+                  "canonicalReference": "shift-refactor!SimpleIdentifierOwner:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifier",
+                  "canonicalReference": "shift-refactor!SimpleIdentifier:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifier",
+                  "canonicalReference": "shift-refactor!SimpleIdentifier:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Scope",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Scope:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 14,
+                "endIndex": 16
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "variableLookup",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 13
+                  }
+                }
+              ],
+              "name": "lookupScope"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#lookupVariable:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "lookupVariable(node: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifierOwner",
+                  "canonicalReference": "shift-refactor!SimpleIdentifierOwner:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifierOwner",
+                  "canonicalReference": "shift-refactor!SimpleIdentifierOwner:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifier",
+                  "canonicalReference": "shift-refactor!SimpleIdentifier:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SimpleIdentifier",
+                  "canonicalReference": "shift-refactor!SimpleIdentifier:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 10,
+                "endIndex": 11
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "node",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 9
+                  }
+                }
+              ],
+              "name": "lookupVariable"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#lookupVariableByName:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "lookupVariableByName(name: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "name",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "lookupVariableByName"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!GlobalState#parentMap:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "parentMap: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WeakMap",
+                  "canonicalReference": "!WeakMap:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "parentMap",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 7
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!GlobalState#root:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "root: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "root",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!GlobalState#scopeMap:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scopeMap: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WeakMap",
+                  "canonicalReference": "!WeakMap:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Scope",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Scope:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "scopeMap",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 7
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!GlobalState#scopeOwnerMap:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scopeOwnerMap: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WeakMap",
+                  "canonicalReference": "!WeakMap:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Scope",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Scope:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "scopeOwnerMap",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 7
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!GlobalState#validate:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "validate(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "validate"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!GlobalState#variables:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "variables: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Set",
+                  "canonicalReference": "!Set:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "variables",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "isStatic": false
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "shift-refactor!PureFunctionAssessment:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class PureFunctionAssessment "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "PureFunctionAssessment",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "shift-refactor!PureFunctionAssessment:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `PureFunctionAssessment` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(fnNode: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AssessmentNode",
+                  "canonicalReference": "shift-refactor!~AssessmentNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", options?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PureFunctionAssessmentOptions",
+                  "canonicalReference": "shift-refactor!PureFunctionAssessmentOptions:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "fnNode",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "options",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!PureFunctionAssessment#node:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "node: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AssessmentNode",
+                  "canonicalReference": "shift-refactor!~AssessmentNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "node",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!PureFunctionAssessment#qualities:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "qualities: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Set",
+                  "canonicalReference": "!Set:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ImpureFunctionQualities",
+                  "canonicalReference": "shift-refactor!ImpureFunctionQualities:enum"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "qualities",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!PureFunctionAssessment#verdict:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "verdict: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PureFunctionVerdict",
+                  "canonicalReference": "shift-refactor!PureFunctionVerdict:enum"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "verdict",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "shift-refactor!PureFunctionAssessmentOptions:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface PureFunctionAssessmentOptions "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "PureFunctionAssessmentOptions",
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "shift-refactor!PureFunctionAssessmentOptions#fnAllowList:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "fnAllowList?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "fnAllowList",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Enum",
+          "canonicalReference": "shift-refactor!PureFunctionVerdict:enum",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare enum PureFunctionVerdict "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "PureFunctionVerdict",
+          "members": [
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "shift-refactor!PureFunctionVerdict.Probably:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "Probably = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"Probably\""
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "Probably",
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "shift-refactor!PureFunctionVerdict.ProbablyNot:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ProbablyNot = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"ProbablyNot\""
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "ProbablyNot",
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ]
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!refactor:function(1)",
+          "docComment": "/**\n * Create a refactor query object.\n *\n * @remarks\n *\n * This function assumes that it is being passed complete JavaScript source or a *root* AST node (Script or Module) so that it can create and maintain global state.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const $script = refactor(`/* JavaScript Source *\\/`);\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, `/* JavaScript Source *\\/`);\n * ```\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function refactor(input: "
+            },
+            {
+              "kind": "Content",
+              "text": "string | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", options?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "GlobalStateOptions",
+              "canonicalReference": "shift-refactor!GlobalStateOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "RefactorQueryAPI",
+              "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 6,
+            "endIndex": 7
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "parameterName": "options",
+              "parameterTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 5
+              }
+            }
+          ],
+          "name": "refactor"
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "shift-refactor!RefactorError:class",
+          "docComment": "/**\n * Error thrown by Refactor methods\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class RefactorError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "Error",
+              "canonicalReference": "!Error:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RefactorError",
+          "members": [],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "shift-refactor!RefactorSessionChainable:class",
+          "docComment": "/**\n * The Chainable Refactor interface\n *\n * @remarks\n *\n * This is not intended to be instantiated directly. Use refactor() to create your instances.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class RefactorSessionChainable "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RefactorSessionChainable",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `RefactorSessionChainable` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(session: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorSession",
+                  "canonicalReference": "shift-refactor!RefactorSession:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "session",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#$:member(1)",
+              "docComment": "/**\n * Sub-query from selected nodes\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let a = 1;\n * function myFunction() {\n *   let b = 2, c = 3;\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const funcDecl = $script('FunctionDeclaration[name.name=\"myFunction\"]');\n * const innerIdentifiers = funcDecl.$('BindingIdentifier');\n * // innerIdentifiers.nodes: myFunction, b, c (note: does not include a)\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(innerIdentifiers.length, 3);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "$(queryOrNodes: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SelectorOrNode",
+                  "canonicalReference": "shift-refactor!SelectorOrNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "queryOrNodes",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "$"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#append:member(1)",
+              "docComment": "/**\n * Inserts the result of `replacer` after the selected statement.\n *\n * @remarks\n *\n * Only works on Statement nodes.\n *\n * @param replacer - `string` | Shift `Node` | `(node) => string | Node`: Replaces a node with the result of the replacer parameter\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n * const Shift = require('shift-ast');\n *\n * const src = `\n * var message = \"Hello\";\n * console.log(message);\n * `\n *\n * $script = refactor(src);\n *\n * $script('LiteralStringExpression[value=\"Hello\"]').closest(':statement').append('debugger');\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, 'var message = \"Hello\";debugger;console.log(message)');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "append(replacer: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Replacer",
+                  "canonicalReference": "shift-refactor!Replacer:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorSessionChainable",
+                  "canonicalReference": "shift-refactor!RefactorSessionChainable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "replacer",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "append"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#closest:member(1)",
+              "docComment": "/**\n * Finds the closest parent node that matches the passed selector.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * function someFunction() {\n *   interestingFunction();\n * }\n * function otherFunction() {\n *   interestingFunction();\n * }\n * `\n *\n * $script = refactor(src);\n *\n * // finds all functions that call `interestingFunction`\n * const fnDecls = $script('CallExpression[callee.name=\"interestingFunction\"]').closest('FunctionDeclaration');\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(fnDecls.length, 2);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "closest(closestSelector: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "closestSelector",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "closest"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#codegen:member(1)",
+              "docComment": "/**\n * Generates JavaScript source for the first selected node.\n *\n * @example\n * ```js\n *\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * for (var i=1; i < 101; i++){\n *   if (i % 15 == 0) console.log(\"FizzBuzz\");\n *   else if (i % 3 == 0) console.log(\"Fizz\");\n *   else if (i % 5 == 0) console.log(\"Buzz\");\n *   else console.log(i);\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const strings = $script(\"LiteralStringExpression\")\n *\n * console.log(strings.codegen());\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(strings.length,3);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "codegen(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "codegen"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#declarations:member(1)",
+              "docComment": "/**\n * Finds the declaration for the selected Identifier nodes.\n *\n * @remarks\n *\n * Returns a list of Declaration objects for each selected node, not a shift-refactor query object.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const myVariable = 2, otherVar = 3;\n * console.log(myVariable, otherVar);\n * `\n *\n * $script = refactor(src);\n *\n * // selects the parameters to console.log() and finds their declarations\n * const decls = $script('CallExpression[callee.object.name=\"console\"][callee.property=\"log\"] > .arguments').declarations();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(decls[0].length, 1);\n * assert.equal(decls[1].length, 1);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "declarations(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Declaration",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Declaration:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[][]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "declarations"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#delete:member(1)",
+              "docComment": "/**\n * Delete nodes\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * $script = refactor('foo();bar();');\n *\n * $script('ExpressionStatement[expression.callee.name=\"foo\"]').delete();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, 'bar();');\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "delete(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "delete"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#find:member(1)",
+              "docComment": "/**\n * Finds node via the passed iterator iterator\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const myMessage = \"He\" + \"llo\" + \" \" + \"World\";\n * `\n *\n * $script = refactor(src);\n *\n * $script('LiteralStringExpression')\n *   .find(node => node.value === 'World')\n *   .replace('\"Reader\"');\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, 'const myMessage = \"He\" + \"llo\" + \" \" + \"Reader\";');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "find(iterator: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(node: any, i?: number) => any"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "iterator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "find"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#findMatchingExpression:member(1)",
+              "docComment": "/**\n * Finds an expression that closely matches the passed source.\n *\n * @remarks\n *\n * Used for selecting nodes by source pattern instead of query. The passed source is parsed as a Script and the first statement is expected to be an ExpressionStatement.Matching is done by matching the properties of the parsed statement, ignoring additional properties/nodes in the source tree.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const a = someFunction(paramOther);\n * const b = targetFunction(param1, param2);\n * `\n *\n * $script = refactor(src);\n *\n * const targetCallExpression = $script.findMatchingExpression('targetFunction(param1, param2)');\n * ```\n *\n * @assert\n * ```js\n * assert.equal(targetCallExpression.length, 1);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "findMatchingExpression(sampleSrc: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "sampleSrc",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "findMatchingExpression"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#findMatchingStatement:member(1)",
+              "docComment": "/**\n * Finds a statement that matches the passed source.\n *\n * @remarks\n *\n * Used for selecting nodes by source pattern vs query. The passed source is parsed as a Script and the first statement alone is used as the statement to match. Matching is done by matching the properties of the parsed statement, ignoring additional properties/nodes in the source tree.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * function someFunction(a,b) {\n *   var innerVariable = \"Lots of stuff in here\";\n *   foo(a);\n *   bar(b);\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const targetDeclaration = $script.findMatchingStatement('function someFunction(a,b){}');\n * ```\n *\n * @assert\n * ```js\n * assert.equal(targetDeclaration.length, 1);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "findMatchingStatement(sampleSrc: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "sampleSrc",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "findMatchingStatement"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#findOne:member(1)",
+              "docComment": "/**\n * Finds and selects a single node, throwing an error if zero or more than one is found.\n *\n * @remarks\n *\n * This is useful for when you want to target a single node but aren't sure how specific your query needs to be to target that node and only that node.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let outerVariable = 1;\n * function someFunction(a,b) {\n *   let innerVariable = 2;\n * }\n * `\n *\n * $script = refactor(src);\n *\n * // This would throw, because there are multiple VariableDeclarators\n * // $script.findOne('VariableDeclarator');\n *\n * // This won't throw because there is only one within the only FunctionDeclaration.\n * const innerVariableDecl = $script('FunctionDeclaration').findOne('VariableDeclarator');\n * ```\n *\n * @assert\n * ```js\n * assert.equal(innerVariableDecl.length, 1);\n * assert.throws(() => {\n *   $script.findOne('VariableDeclarator');\n * })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "findOne(selectorOrNode: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "selectorOrNode",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "findOne"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#first:member(1)",
+              "docComment": "/**\n * Returns the first node in the list\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * func1();\n * func2();\n * func3();\n * `\n *\n * $script = refactor(src);\n *\n * const func1CallExpression = $script('CallExpression').first();\n * ```\n *\n * @assert\n * ```js\n * assert.equal(func1CallExpression, $script.root.statements[0].expression);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "first(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "first"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#forEach:member(1)",
+              "docComment": "/**\n * Iterate over selected nodes\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let a = [1,2,3,4];\n * `\n *\n * $script = refactor(src);\n *\n * $script('LiteralNumericExpression').forEach(node => node.value *= 2);\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, 'let a = [2,4,6,8]');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "forEach(iterator: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(node: any, i?: number) => any"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorSessionChainable",
+                  "canonicalReference": "shift-refactor!RefactorSessionChainable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "iterator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "forEach"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#get:member(1)",
+              "docComment": "/**\n * Get selected node at index.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * someFunction('first string', 'second string', 'third string');\n * `\n * $script = refactor(src);\n *\n * const thirdString = $script('LiteralStringExpression').get(2);\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(thirdString.value, 'third string');\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get(index: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "index",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "get"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#length:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get length(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "length",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#logOut:member(1)",
+              "docComment": "/**\n * `console.log()`s the selected nodes. Useful for inserting into a chain to see what nodes you are working with.\n *\n * @example\n * ```js\n *\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let a = 1, b = 2;\n * `\n *\n * $script = refactor(src);\n *\n * $script(\"VariableDeclarator\").logOut().delete();\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script,'');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "logOut(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "logOut"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#lookupVariable:member(1)",
+              "docComment": "/**\n * Looks up the Variable from the passed identifier node\n *\n * @remarks\n *\n * Returns `Variable` objects from shift-scope, that contain all the references and declarations for a program variable.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const someVariable = 2, other = 3;\n * someVariable++;\n * function thisIsAVariabletoo(same, as, these) {}\n * `\n *\n * $script = refactor(src);\n *\n * // Finds all variables declared within a program\n * const variables = $script('BindingIdentifier').lookupVariable();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(variables.length, 6);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "lookupVariable(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "lookupVariable"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#lookupVariableByName:member(1)",
+              "docComment": "/**\n * Looks up Variables by name.\n *\n * @remarks\n *\n * There may be multiple across a program. Variable lookup operates on the global program state. This method ignores selected nodes.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const someVariable = 2, other = 3;\n * `\n *\n * $script = refactor(src);\n *\n * const variables = $script.lookupVariableByName('someVariable');\n * ```\n *\n * @assert\n * ```js\n * assert.equal(variables.length, 1);\n * assert.equal(variables[0].name, 'someVariable');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "lookupVariableByName(name: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Variable",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Variable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "name",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "lookupVariableByName"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#map:member(1)",
+              "docComment": "/**\n * Transform selected nodes via passed iterator\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let doc = window.document;\n * function addListener(event, fn) {\n *   doc.addEventListener(event, fn);\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const values = $script('BindingIdentifier').map(node => node.name);\n * ```\n *\n * @assert\n * ```js\n * assert.deepEqual(values, ['doc', 'addListener', 'event', 'fn']);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "map(iterator: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(node: any, i?: number) => any"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "iterator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "map"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#nodes:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get nodes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "nodes",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#parents:member(1)",
+              "docComment": "/**\n * Retrieve parent node(s)\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * var a = 1, b = 2;\n * `\n *\n * $script = refactor(src);\n * const declarators = $script('VariableDeclarator');\n * const declaration = declarators.parents();\n * ```\n *\n * @assert\n * ```js\n * assert.equal(declaration.length, 1);\n * assert.equal(declarators.length, 2);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "parents(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "parents"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable.plugins:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static plugins: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Plugin",
+                  "canonicalReference": "shift-refactor!~Plugin:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "plugins",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#prepend:member(1)",
+              "docComment": "/**\n * Inserts the result of `replacer` before the selected statement.\n *\n * @remarks\n *\n * Only works on Statement nodes.\n *\n * @param replacer - `string` | Shift `Node` | `(node) => string | Node`: Replaces a node with the result of the replacer parameter\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n * const Shift = require('shift-ast');\n *\n * const src = `\n * var message = \"Hello\";\n * console.log(message);\n * `\n *\n * $script = refactor(src);\n *\n * $script('ExpressionStatement[expression.type=\"CallExpression\"]').prepend(new Shift.DebuggerStatement());\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, 'var message = \"Hello\";debugger;console.log(message)');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "prepend(replacer: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Replacer",
+                  "canonicalReference": "shift-refactor!Replacer:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorSessionChainable",
+                  "canonicalReference": "shift-refactor!RefactorSessionChainable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "replacer",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "prepend"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#print:member(1)",
+              "docComment": "/**\n * Generates JavaScript source for the first selected node.\n *\n * @example\n * ```js\n *\n * const { refactor } = require('shift-refactor');\n * const Shift = require('shift-ast');\n *\n * const src = `\n * window.addEventListener('load', () => {\n *   lotsOfWork();\n * })\n * `\n *\n * $script = refactor(src);\n *\n * $script(\"CallExpression[callee.property='addEventListener'] > ArrowExpression\")\n *   .replace(new Shift.IdentifierExpression({name: 'myListener'}));\n *\n * console.log($script.print());\n *\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, \"window.addEventListener('load', myListener)\");\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "print(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "print"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#query:member(1)",
+              "docComment": "/**\n * Sub-query from selected nodes\n *\n * @remarks\n *\n * synonym for .$()\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "query(selector: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string | string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorQueryAPI",
+                  "canonicalReference": "shift-refactor!RefactorQueryAPI:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "selector",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "query"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#references:member(1)",
+              "docComment": "/**\n * Finds the references for the selected Identifier nodes.\n *\n * @remarks\n *\n * Returns a list of Reference objects for each selected node, not a shift-refactor query object.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let myVar = 1;\n * function someFunction(a,b) {\n *   myVar++;\n *   return myVar;\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const refs = $script('BindingIdentifier[name=\"myVar\"]').references();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(refs[0].length, 3);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "references(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Reference",
+                  "canonicalReference": "!\"\\\"shift-scope\\\"\".Reference:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[][]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "references"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#rename:member(1)",
+              "docComment": "/**\n * Rename all references to the first selected node to the passed name.\n *\n * @remarks\n *\n * Uses the selected node as the target, but affects the global state.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const myVariable = 2;\n * myVariable++;\n * const other = myVariable;\n * function unrelated(myVariable) { return myVariable }\n * `\n * $script = refactor(src);\n *\n * $script('VariableDeclarator[binding.name=\"myVariable\"]').rename('newName');\n *\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, 'const newName = 2;newName++;const other = newName;function unrelated(myVariable) { return myVariable }');\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "rename(newName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "newName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "rename"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#replace:member(1)",
+              "docComment": "/**\n * Replace selected node with the result of the replacer parameter\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n * const Shift = require('shift-ast');\n *\n * const src = `\n * function sum(a,b) { return a + b }\n * function difference(a,b) {return a - b}\n * `\n *\n * $script = refactor(src);\n *\n * $script('FunctionDeclaration').replace(node => new Shift.VariableDeclarationStatement({\n *   declaration: new Shift.VariableDeclaration({\n *     kind: 'const',\n *     declarators: [\n *       new Shift.VariableDeclarator({\n *         binding: node.name,\n *         init: new Shift.ArrowExpression({\n *           isAsync: false,\n *           params: node.params,\n *           body: node.body\n *         })\n *       })\n *     ]\n *   })\n * }))\n *\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, 'const sum = (a,b) => { return a + b }; const difference = (a,b) => { return a - b };')\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "replace(replacer: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Replacer",
+                  "canonicalReference": "shift-refactor!Replacer:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorSessionChainable",
+                  "canonicalReference": "shift-refactor!RefactorSessionChainable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "replacer",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "replace"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#replaceAsync:member(1)",
+              "docComment": "/**\n * Async version of .replace() that supports asynchronous replacer functions\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * $script = refactor('var a = \"hello\";');\n *\n * async function work() {\n *  await $script('LiteralStringExpression').replaceAsync(\n *    (node) => Promise.resolve(`\"goodbye\"`)\n *  )\n * }\n *\n * ```\n *\n * @assert\n * ```js\n * work().then(_ => assert.treesEqual($script, 'var a = \"goodbye\";'));\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "replaceAsync(replacer: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AsyncReplacer",
+                  "canonicalReference": "shift-refactor!AsyncReplacer:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "replacer",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "replaceAsync"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#replaceChildren:member(1)",
+              "docComment": "/**\n * Recursively replaces child nodes until no nodes have been replaced.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n * const Shift = require('shift-ast');\n *\n * const src = `\n * 1 + 2 + 3\n * `\n *\n * $script = refactor(src);\n *\n * $script.replaceChildren(\n *  'BinaryExpression[left.type=LiteralNumericExpression][right.type=LiteralNumericExpression]',\n *  (node) => new Shift.LiteralNumericExpression({value: node.left.value + node.right.value})\n * );\n * ```\n *\n * @assert\n * ```js\n * assert.treesEqual($script, '6;');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "replaceChildren(query: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SelectorOrNode",
+                  "canonicalReference": "shift-refactor!SelectorOrNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", replacer: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Replacer",
+                  "canonicalReference": "shift-refactor!Replacer:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorSessionChainable",
+                  "canonicalReference": "shift-refactor!RefactorSessionChainable:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "query",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "replacer",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                }
+              ],
+              "name": "replaceChildren"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#root:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get root(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "root",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#session:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "session: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefactorSession",
+                  "canonicalReference": "shift-refactor!RefactorSession:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "releaseTag": "Public",
+              "name": "session",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#toJSON:member(1)",
+              "docComment": "/**\n * JSON-ifies the current selected nodes.\n *\n * @example\n * ```js\n *\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * (function(){ console.log(\"Hey\")}())\n * `\n *\n * $script = refactor(src);\n *\n * const json = $script.toJSON();\n * ```\n *\n * @assert\n * ```js\n * assert.deepEqual(json,JSON.stringify([_parse('(function(){ console.log(\"Hey\")}())')]));\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "toJSON(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "toJSON"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "shift-refactor!RefactorSessionChainable:interface",
+          "docComment": "/**\n * Necessary typing for RefactorSessionChainable static methods\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface RefactorSessionChainable extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "Pluggable",
+              "canonicalReference": "shift-refactor!Pluggable:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RefactorSessionChainable",
+          "members": [],
+          "extendsTokenRanges": [
+            {
+              "startIndex": 1,
+              "endIndex": 3
+            }
+          ]
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "shift-refactor!Replacer:type",
+          "docComment": "/**\n * Node, JavaScript source, or a function that takes a node and returns a Node or JavaScript source.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type Replacer = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | string | ((node: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => string | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": ")"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Replacer",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 7
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "shift-refactor!SelectorOrNode:type",
+          "docComment": "/**\n * Input type for many methods\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type SelectorOrNode = "
+            },
+            {
+              "kind": "Content",
+              "text": "string | string[] | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "SelectorOrNode",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
+        }
+      ]
+    }
+  ]
+}

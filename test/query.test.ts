@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Node } from 'shift-ast';
 import { parseScript } from 'shift-parser';
-import { query } from '../src/query';
+import { query } from '../src/misc/query';
 
 const trees: Node[] = [
   parseScript('a = 1;'),

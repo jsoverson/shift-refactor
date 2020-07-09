@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { parseScript as parse, parseScript } from 'shift-parser';
 import { refactor } from '../../src/';
-import { MemorableIdGenerator } from '../../src/id-generator';
+import { MemorableIdGenerator } from '../../src/id-generator/id-generator';
 
 describe('plugin-common', () => {
   describe('normalizeIdentifiers', () => {

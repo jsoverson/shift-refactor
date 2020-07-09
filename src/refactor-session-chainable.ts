@@ -1,25 +1,53 @@
 import { Node } from 'shift-ast';
 import { Declaration, Reference, Variable } from 'shift-scope';
-import pluginCommon from './refactor-plugin-common';
-import pluginUnsafe from './refactor-plugin-unsafe';
+import { GlobalState, GlobalStateOptions } from './global-state';
+import { AsyncReplacer, Constructor, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from './misc/types';
+import commonMethods from './refactor-plugin-common';
+import unsafeMethods from './refactor-plugin-unsafe';
 import { RefactorSession } from './refactor-session';
-import { Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from './types';
-import { GlobalState } from './global-state';
 
-type RefactorPlugin = (instance: RefactorSessionChainable) => any;
-type Constructor<T> = new (...args: any[]) => T;
+type Plugin = (instance: RefactorSessionChainable) => any;
 
-export type $QueryInput = string | Node | Node[]
+/**
+ * Plugin interface
+ * 
+ * @internal
+ */
+export interface Pluggable {
+  /**
+   * @internal
+   */
+  plugins: Plugin[];
+  /**
+   * @internal
+   */
+  with<S extends Constructor<any> & Pluggable, T extends Plugin>(this: S, plugin: T): S & Pluggable;
+}
+
+/**
+ * Refactor query objects can take a string, a single node, or a list of nodes as input
+ */
+export type RefactorQueryInput = string | Node | Node[]
+
+/**
+ * Necessary typing for RefactorSessionChainable static methods
+ * 
+ * @public
+ */
+export interface RefactorSessionChainable extends Pluggable { };
 
 /**
  * The Chainable Refactor interface
  * 
+ * @remarks
+ * 
+ * This is not intended to be instantiated directly. Use refactor() to create your instances.
  * 
  * @public
  */
 export class RefactorSessionChainable {
   session: RefactorSession;
-  static plugins: RefactorPlugin[] = [];
+  static plugins: Plugin[] = [];
 
   constructor(session: RefactorSession) {
     this.session = session;
@@ -29,24 +57,30 @@ export class RefactorSessionChainable {
     });
   }
 
-  static with<S extends Constructor<any> & { plugins: RefactorPlugin[] }, T extends RefactorPlugin>
-    (this: S, plugin: T) {
+
+  /**
+   * @internal
+   */
+  static with<S extends Constructor<any> & Pluggable, T extends Plugin>(this: S, plugin: T) {
     const currentPlugins = this.plugins;
 
-    const BaseWithPlugins = class extends this {
+    const BaseWithPlugins: Pluggable = class extends this {
       static plugins = currentPlugins.concat(plugin);
       static with = RefactorSessionChainable.with;
-      static create = RefactorSessionChainable.create;
+      // static create = RefactorSessionChainable.create;
     };
 
-    return BaseWithPlugins as typeof BaseWithPlugins & Constructor<ReturnType<T>>;
+    return BaseWithPlugins as S & typeof BaseWithPlugins & Constructor<ReturnType<T>>;
   }
 
-  static create(session: RefactorSession) {
+  /**
+   * @internal
+   */
+  static create(session: RefactorSession): RefactorQueryAPI {
     const chainable = new RefactorChainableWithPlugins(session);
     const prototype = Object.getPrototypeOf(chainable);
 
-    const $query = function (selector: $QueryInput) {
+    const $query = function (selector: RefactorQueryInput): RefactorQueryAPI {
       const subSession = session.subSession(selector);
       return RefactorChainableWithPlugins.create(subSession);
     }
@@ -69,6 +103,34 @@ export class RefactorSessionChainable {
 
   get nodes(): Node[] {
     return this.session.nodes;
+  }
+
+  /**
+  * Get selected node at index.
+  * 
+  * @example
+  *
+  * ```js
+  * const { refactor } = require('shift-refactor');
+  *
+  * const src = `
+  * someFunction('first string', 'second string', 'third string');
+  * `
+  * $script = refactor(src);
+  *
+  * const thirdString = $script('LiteralStringExpression').get(2);
+  *
+  * ```
+  * 
+  * @assert
+  * 
+  * ```js
+  * assert.equal(thirdString.value, 'third string');
+  * ```
+  *
+  */
+  get(index: number): Node {
+    return this.nodes[index];
   }
 
   /**
@@ -100,7 +162,7 @@ export class RefactorSessionChainable {
   * ```js
   * assert.treesEqual($script, 'const newName = 2;newName++;const other = newName;function unrelated(myVariable) { return myVariable }');
   * ```
-  * 
+  *
   */
   rename(newName: string) {
     this.session.rename(this.first(), newName);
@@ -133,36 +195,78 @@ export class RefactorSessionChainable {
     return this;
   }
 
+  /**
+  * Replace selected node with the result of the replacer parameter
+  *
+  * @example
+  *
+  * ```js
+  * const { refactor } = require('shift-refactor');
+  * const Shift = require('shift-ast');
+  * 
+  * const src = `
+  * function sum(a,b) { return a + b }
+  * function difference(a,b) {return a - b}
+  * `
+  *
+  * $script = refactor(src);
+  * 
+  * $script('FunctionDeclaration').replace(node => new Shift.VariableDeclarationStatement({
+  *   declaration: new Shift.VariableDeclaration({
+  *     kind: 'const',
+  *     declarators: [
+  *       new Shift.VariableDeclarator({
+  *         binding: node.name,
+  *         init: new Shift.ArrowExpression({
+  *           isAsync: false,
+  *           params: node.params,
+  *           body: node.body
+  *         })
+  *       })
+  *     ]
+  *   })
+  * }))
+  *
+  * ```
+  * @assert 
+  * 
+  * ```js
+  * assert.treesEqual($script, 'const sum = (a,b) => { return a + b }; const difference = (a,b) => { return a - b };')
+  * ```
+  *
+  * @public
+  */
   replace(replacer: Replacer): RefactorSessionChainable {
     this.session.replace(this.nodes, replacer);
     return this;
   }
 
   /**
-   * Async version of .replace() that supports asynchronous replacer functions
-   *
-   * @example
-   *
-   * ```js
-   * const { refactor } = require('shift-refactor');
-   *
-   * $script = refactor('var a = "hello";');
-   * 
-   * async function work() {
-   *  await $script('LiteralStringExpression').replaceAsync(
-   *    (node) => Promise.resolve(`"goodbye"`)
-   *  )
-   * }
-   *
-   * ```
-   * @assert 
-   * 
-   * ```js
-   * // TODO this doesn't work, every async function is an instance of Promise
-   * work().then(_ => assert.treesEqual($script, 'var a = "goodbye";'));
-   * ```
-   */
-  replaceAsync(replacer: (node: Node) => Promise<string | Node>) {
+  * Async version of .replace() that supports asynchronous replacer functions
+  *
+  * @example
+  *
+  * ```js
+  * const { refactor } = require('shift-refactor');
+  *
+  * $script = refactor('var a = "hello";');
+  * 
+  * async function work() {
+  *  await $script('LiteralStringExpression').replaceAsync(
+  *    (node) => Promise.resolve(`"goodbye"`)
+  *  )
+  * }
+  *
+  * ```
+  * @assert 
+  * 
+  * ```js
+  * work().then(_ => assert.treesEqual($script, 'var a = "goodbye";'));
+  * ```
+  *
+  * @public
+  */
+  replaceAsync(replacer: AsyncReplacer) {
     return this.session.replaceAsync(this.nodes, replacer);
   }
 
@@ -193,7 +297,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.treesEqual($script, '6;');
   * ```
-  * 
+  *
+  * @public
   */
   replaceChildren(query: SelectorOrNode, replacer: Replacer): RefactorSessionChainable {
     this.session.replaceRecursive(query, replacer);
@@ -224,7 +329,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(func1CallExpression, $script.root.statements[0].expression);
   * ```
-  * 
+  *
+  * @public
   */
   first(): Node {
     return this.session.first();
@@ -253,7 +359,8 @@ export class RefactorSessionChainable {
   * assert.equal(declaration.length, 1);
   * assert.equal(declarators.length, 2);
   * ```
-  * 
+  *
+  * @public
   */
   parents() {
     return this.$(this.session.findParents(this.nodes));
@@ -291,7 +398,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.treesEqual($script, 'var message = "Hello";debugger;console.log(message)');
   * ```
-  * 
+  *
+  * @public
   */
   prepend(replacer: Replacer): RefactorSessionChainable {
     this.session.prepend(this.nodes, replacer);
@@ -328,7 +436,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.treesEqual($script, 'var message = "Hello";debugger;console.log(message)');
   * ```
-  * 
+  *
+  * @public
   */
   append(replacer: Replacer): RefactorSessionChainable {
     this.session.append(this.nodes, replacer);
@@ -363,7 +472,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(innerIdentifiers.length, 3);
   * ```
-  * 
+  *
+  * @public
   */
   $(queryOrNodes: SelectorOrNode) {
     return RefactorSessionChainable.create(this.session.subSession(queryOrNodes));
@@ -375,7 +485,8 @@ export class RefactorSessionChainable {
   * @remarks
   * 
   * synonym for .$()
-  * 
+  *
+  * @public
   */
   query(selector: string | string[]) {
     return this.$(this.session.query(selector));
@@ -396,7 +507,6 @@ export class RefactorSessionChainable {
   * $script = refactor(src);
   *
   * $script('LiteralNumericExpression').forEach(node => node.value *= 2);
-
   * ```
   * 
   * @assert
@@ -404,11 +514,44 @@ export class RefactorSessionChainable {
   * ```js
   * assert.treesEqual($script, 'let a = [2,4,6,8]');
   * ```
-  * 
+  *
+  * @public
   */
   forEach(iterator: (node: any, i?: number) => any): RefactorSessionChainable {
     this.nodes.forEach(iterator);
     return this;
+  }
+
+  /**
+  * Transform selected nodes via passed iterator
+  * 
+  * @example
+  *
+  * ```js
+  * const { refactor } = require('shift-refactor');
+  * 
+  * const src = `
+  * let doc = window.document;
+  * function addListener(event, fn) {
+  *   doc.addEventListener(event, fn);
+  * }
+  * `
+  *
+  * $script = refactor(src);
+  *
+  * const values = $script('BindingIdentifier').map(node => node.name);
+  * ```
+  * 
+  * @assert
+  * 
+  * ```js
+  * assert.deepEqual(values, ['doc', 'addListener', 'event', 'fn']);
+  * ```
+  *
+  * @public
+  */
+  map(iterator: (node: any, i?: number) => any): any[] {
+    return this.nodes.map(iterator);
   }
 
   /**
@@ -435,7 +578,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.treesEqual($script, 'const myMessage = "He" + "llo" + " " + "Reader";');
   * ```
-  * 
+  *
+  * @public
   */
   find(iterator: (node: any, i?: number) => any) {
     return this.$(this.nodes.find(iterator) || []);
@@ -469,7 +613,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(targetCallExpression.length, 1);
   * ```
-  * 
+  *
+  * @public
   */
   findMatchingExpression(sampleSrc: string) {
     return this.$(this.session.findMatchingExpression(sampleSrc));
@@ -505,7 +650,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(targetDeclaration.length, 1);
   * ```
-  * 
+  *
+  * @public
   */
   findMatchingStatement(sampleSrc: string) {
     return this.$(this.session.findMatchingStatement(sampleSrc));
@@ -547,7 +693,8 @@ export class RefactorSessionChainable {
   *   $script.findOne('VariableDeclarator');
   * })
   * ```
-  * 
+  *
+  * @public
   */
   findOne(selectorOrNode: string) {
     return this.$(this.session.findOne(selectorOrNode));
@@ -558,7 +705,7 @@ export class RefactorSessionChainable {
   * 
   * @remarks
   * 
-  * Note: Returns a list of Reference objects for each selected node, not a shift-refactor query object.
+  * Returns a list of Reference objects for each selected node, not a shift-refactor query object.
   * 
   * @example
   *
@@ -584,7 +731,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(refs[0].length, 3);
   * ```
-  * 
+  *
+  * @public
   */
   references(): Reference[][] {
     return this.nodes.map(node => this.session.globalSession.findReferences(node as SimpleIdentifier | SimpleIdentifierOwner));
@@ -596,7 +744,7 @@ export class RefactorSessionChainable {
   * 
   * @remarks
   * 
-  * Note: Returns a list of Declaration objects for each selected node, not a shift-refactor query object.
+  * Returns a list of Declaration objects for each selected node, not a shift-refactor query object.
   * 
   * @example
   *
@@ -621,7 +769,8 @@ export class RefactorSessionChainable {
   * assert.equal(decls[0].length, 1);
   * assert.equal(decls[1].length, 1);
   * ```
-  * 
+  *
+  * @public
   */
   declarations(): Declaration[][] {
     return this.nodes.map(node => this.session.globalSession.findDeclarations(node as SimpleIdentifier | SimpleIdentifierOwner));
@@ -657,7 +806,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(fnDecls.length, 2);
   * ```
-  * 
+  *
+  * @public
   */
   closest(closestSelector: string) {
     return this.$(this.session.closest(this.nodes, closestSelector));
@@ -693,7 +843,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(variables.length, 6);
   * ```
-  * 
+  *
+  * @public
   */
   lookupVariable(): Variable[] {
     return this.nodes.map(node => this.session.globalSession.lookupVariable(node as SimpleIdentifierOwner | SimpleIdentifier));
@@ -726,7 +877,8 @@ export class RefactorSessionChainable {
   * assert.equal(variables.length, 1);
   * assert.equal(variables[0].name, 'someVariable');
   * ```
-  * 
+  *
+  * @public
   */
   lookupVariableByName(name: string): Variable[] {
     return this.session.globalSession.lookupVariableByName(name);
@@ -763,7 +915,8 @@ export class RefactorSessionChainable {
   * ```js
   * assert.treesEqual($script, "window.addEventListener('load', myListener)");
   * ```
-  * 
+  *
+  * @public
   */
   print() {
     return this.session.print();
@@ -801,42 +954,122 @@ export class RefactorSessionChainable {
   * ```js
   * assert.equal(strings.length,3);
   * ```
-  * 
+  *
+  * @public
   */
   codegen() {
     return this.nodes.map(node => this.session.print(node));
   }
+
+  /**
+  * `console.log()`s the selected nodes. Useful for inserting into a chain to see what
+  * nodes you are working with.
+  *
+  * @example
+  *
+  * 
+  * ```js
+  * 
+  * const { refactor } = require('shift-refactor');
+  * 
+  * const src = `
+  * let a = 1, b = 2;
+  * `
+  *
+  * $script = refactor(src);
+  *
+  * $script("VariableDeclarator").logOut().delete();
+  * ```
+  * 
+  * @assert
+  * 
+  * ```js
+  * assert.treesEqual($script,'');
+  * ```
+  *
+  * @public
+  */
+  logOut() {
+    console.log(this.nodes);
+    return this;
+  }
+
+  /**
+  * JSON-ifies the current selected nodes.
+  *
+  * @example
+  *
+  * 
+  * ```js
+  * 
+  * const { refactor } = require('shift-refactor');
+  * 
+  * const src = `
+  * (function(){ console.log("Hey")}())
+  * `
+  *
+  * $script = refactor(src);
+  *
+  * const json = $script.toJSON();
+  * ```
+  * 
+  * @assert
+  * 
+  * ```js
+  * assert.deepEqual(json,JSON.stringify([_parse('(function(){ console.log("Hey")}())')]));
+  * ```
+  *
+  * @public
+  */
+  toJSON() {
+    return JSON.stringify(this.nodes);
+  }
 }
 
-export const RefactorChainableWithPlugins = RefactorSessionChainable.with(pluginUnsafe).with(pluginCommon);
+const RefactorChainableWithPlugins = RefactorSessionChainable.with(unsafeMethods).with(commonMethods);
 
 /**
- * Initialization of a RefactorSession via the chainable API
+ * Refactor query object type
+ */
+export type RefactorQueryAPI = {
+  (selectorOrNode: RefactorQueryInput): RefactorQueryAPI;
+} & InstanceType<typeof RefactorChainableWithPlugins>;
+
+/**
+ * Create a refactor query object.
+ * 
+ * @remarks
+ * 
+ * This function assumes that it is being passed complete JavaScript source or a *root* AST node (Script or Module) so that it can create and maintain global state.
  *
  * @example
  * 
  * ```js
- * const fs = require('fs');
-
  * const { refactor } = require('shift-refactor');
  * 
- * const src = fs.readFileSync('example.js', 'utf-8');
- * 
- * const $script = refactor(src);
- * 
- * console.log($script('LiteralStringExpression').codegen());
+ * const $script = refactor(`/* JavaScript Source *\/`);
  * ```
  * 
  * @assert
  * 
  * ```js
- * assert.treesEqual($script, src);
+ * assert.treesEqual($script, `/* JavaScript Source *\/`);
  * ```
  * 
  * @public
  */
-export function refactor(input: string | Node, { autoCleanup = true } = {}) {
-  const globalSession = new GlobalState(input, { autoCleanup });
+export function refactor(input: string | Node, options?: GlobalStateOptions): RefactorQueryAPI {
+  const globalSession = new GlobalState(input, options);
   const refactorSession = new RefactorSession(globalSession.root, globalSession);
-  return RefactorSessionChainable.with(pluginUnsafe).with(pluginCommon).create(refactorSession);
+  return RefactorChainableWithPlugins.create(refactorSession);
 }
+
+
+/*
+  Ignore below. These types get rolled up as dynamic import()'s in the declaration if I don't import them
+  directly here and API Extractor doesn't support dynamic import()'s. Yeah.
+*/
+import { FunctionDeclaration } from 'shift-ast';
+import { PureFunctionAssessment, PureFunctionAssessmentOptions } from './refactor-plugin-unsafe';
+const sorry = function (): PureFunctionAssessment | PureFunctionAssessmentOptions | FunctionDeclaration | undefined { return undefined }
+

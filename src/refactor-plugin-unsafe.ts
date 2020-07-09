@@ -1,19 +1,21 @@
 import { ClassDeclaration, FunctionDeclaration, VariableDeclarator } from 'shift-ast';
 import { Reference, Scope, ScopeType, Variable } from 'shift-scope';
-import { PureFunctionAssessment, PureFunctionAssessmentOptions, PureFunctionVerdict } from './pure-functions';
+import { PureFunctionAssessment, PureFunctionAssessmentOptions, PureFunctionVerdict } from './misc/pure-functions';
 import { RefactorSessionChainable } from './refactor-session-chainable';
-import { copy, isLiteral, isStatement } from './util';
+import { copy, isLiteral, isStatement } from './misc/util';
 
-export default function pluginUnsafe() {
+export { PureFunctionAssessmentOptions, PureFunctionAssessment, PureFunctionVerdict, ImpureFunctionQualities } from './misc/pure-functions';
+
+export default function unsafeMethods() {
   return {
-    // findPureFunctionCandidates(this: RefactorSessionChainable, options?: PureFunctionAssessmentOptions) {
-    //   return new Map(
-    //     (this.query('FunctionDeclaration') as FunctionDeclaration[])
-    //       .map((fn: FunctionDeclaration) => new PureFunctionAssessment(fn, options))
-    //       .filter((assmt: PureFunctionAssessment) => assmt.verdict === PureFunctionVerdict.Probably)
-    //       .map((assmt: PureFunctionAssessment) => [assmt.node, assmt]),
-    //   );
-    // },
+    findPureFunctionCandidates(this: RefactorSessionChainable, options?: PureFunctionAssessmentOptions): Map<FunctionDeclaration, PureFunctionAssessment> {
+      return new Map(
+        this.query('FunctionDeclaration')
+          .map((fn: FunctionDeclaration) => new PureFunctionAssessment(fn, options))
+          .filter((assmt: PureFunctionAssessment) => assmt.verdict === PureFunctionVerdict.Probably)
+          .map((assmt: PureFunctionAssessment) => [assmt.node, assmt]),
+      );
+    },
 
     massRename(this: RefactorSessionChainable, namePairs: string[][]) {
       namePairs.forEach(([from, to]) => {

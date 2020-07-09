@@ -1,4 +1,4 @@
-import { MemorableIdGenerator } from '../src/id-generator';
+import { MemorableIdGenerator } from '../src/id-generator/id-generator';
 
 const { expect } = require('chai');
 

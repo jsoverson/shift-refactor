@@ -1,14 +1,31 @@
-import { Node, FunctionDeclaration } from "shift-ast";
-import shiftScope, { Variable, Scope, ScopeLookup, Reference, Declaration } from "shift-scope";
-import { GlobalStateOptions } from "./refactor-session";
+import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
+import debug from "debug";
+import { FunctionDeclaration, Node } from "shift-ast";
+import { parseScript } from "shift-parser";
+import shiftScope, { Declaration, Reference, Scope, ScopeLookup, Variable } from "shift-scope";
 import traverser from 'shift-traverser';
 import { default as isValid } from 'shift-validator';
-import { parseScript } from "shift-parser";
-import { RefactorError, SimpleIdentifierOwner, SimpleIdentifier, SelectorOrNode, Replacer } from "./types";
-import { isString, isArray, isShiftNode, isFunction, isStatement, findNodes, copy, buildParentMap } from "./util";
-import debug from "debug";
-import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
+import { RefactorSession } from "./refactor-session";
+import { RefactorError, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from "./misc/types";
+import { buildParentMap, copy, findNodes, isArray, isFunction, isShiftNode, isStatement, isString } from "./misc/util";
 
+
+/**
+ * Options for GlobalState
+ */
+export interface GlobalStateOptions {
+  autoCleanup?: boolean;
+}
+
+/**
+ * Global State object for a script. Manages the root node, insertions, deletions, and replacements. All queries start from a global state and subqueries are child nodes.
+ * 
+ * @remarks
+ * 
+ * Most users won't need to instantiate this directly. Access an instance via `.globalSession` on any refactor query instance.
+ * 
+ * @public
+ */
 export class GlobalState {
   root: Node;
   autoCleanup = true;

@@ -13,13 +13,13 @@ import {
 } from 'shift-ast';
 import { Declaration, Reference } from 'shift-scope';
 import { default as isValid } from 'shift-validator';
-import { MemorableIdGenerator } from './id-generator';
+import { MemorableIdGenerator } from './id-generator/id-generator';
 import { RefactorSessionChainable } from './refactor-session-chainable';
-import { isLiteral, renameScope } from './util';
+import { isLiteral, renameScope } from './misc/util';
 
 const debug = DEBUG('shift-refactor:common');
 
-export default function pluginCommon() {
+export default function commonMethods() {
   return {
     debug(this: RefactorSessionChainable) {
       const injectIntoBody = (body: FunctionBody) => {
@@ -63,17 +63,17 @@ export default function pluginCommon() {
     },
 
     compressConditonalExpressions(this: RefactorSessionChainable) {
-      this.session.replaceRecursive('ConditionalExpression', (expr: ConditionalExpression) => {
-        if (isLiteral(expr.test)) return expr.test ? expr.consequent : expr.alternate;
-        else return expr;
+      this.session.replaceRecursive('ConditionalExpression', (node: Node) => {
+        if (node.type === 'ConditionalExpression' && isLiteral(node.test)) return node.test ? node.consequent : node.alternate;
+        else return node;
       });
       return this;
     },
 
     compressCommaOperators(this: RefactorSessionChainable) {
-      this.session.replaceRecursive('BinaryExpression[operator=","]', (expr: BinaryExpression) => {
-        if (isLiteral(expr.left)) return expr.right;
-        else return expr;
+      this.session.replaceRecursive('BinaryExpression[operator=","]', (node: Node) => {
+        if (node.type === 'BinaryExpression' && isLiteral(node.left)) return node.right;
+        else return node;
       });
       return this;
     },
@@ -81,8 +81,8 @@ export default function pluginCommon() {
     convertComputedToStatic(this: RefactorSessionChainable) {
       this.session.replaceRecursive(
         `ComputedMemberExpression[expression.type="LiteralStringExpression"]`,
-        (node: ComputedMemberExpression) => {
-          if (node.expression.type === 'LiteralStringExpression') {
+        (node: Node) => {
+          if (node.type === 'ComputedMemberExpression' && node.expression.type === 'LiteralStringExpression') {
             const replacement = new StaticMemberExpression({
               object: node.object,
               property: node.expression.value,
@@ -96,8 +96,8 @@ export default function pluginCommon() {
 
       this.session.replaceRecursive(
         `ComputedMemberAssignmentTarget[expression.type="LiteralStringExpression"]`,
-        (node: ComputedMemberAssignmentTarget) => {
-          if (node.expression.type === 'LiteralStringExpression') {
+        (node: Node) => {
+          if (node.type === 'ComputedMemberAssignmentTarget' && node.expression.type === 'LiteralStringExpression') {
             const replacement = new StaticMemberAssignmentTarget({
               object: node.object,
               property: node.expression.value,
@@ -111,8 +111,8 @@ export default function pluginCommon() {
 
       this.session.replaceRecursive(
         `ComputedPropertyName[expression.type="LiteralStringExpression"]`,
-        (node: ComputedPropertyName) => {
-          if (node.expression.type === 'LiteralStringExpression') {
+        (node: Node) => {
+          if (node.type === 'ComputedPropertyName' && node.expression.type === 'LiteralStringExpression') {
             const replacement = new StaticPropertyName({
               value: node.expression.value,
             });

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { StaticMemberExpression } from 'shift-ast';
 import { parseScript as parse } from 'shift-parser';
-import * as util from '../src/util';
+import * as util from '../src/misc/util';
 
 describe('util', function () {
   it('isDeepSimilar', () => {

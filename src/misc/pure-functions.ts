@@ -1,10 +1,10 @@
-import {CallExpression, FunctionDeclaration, Node, Script} from 'shift-ast';
-import {parseScript} from 'shift-parser';
-import shiftScope, {Reference, ScopeLookup, Variable} from 'shift-scope';
-import {traverse} from 'shift-traverser';
-import {SimpleIdentifier} from './types';
-import {getRootIdentifier, isDeepSimilar, isMemberAssignment, isMemberExpression} from './util';
-const {query} = require('shift-query');
+import { CallExpression, FunctionDeclaration, Node, Script } from 'shift-ast';
+import { parseScript } from 'shift-parser';
+import shiftScope, { Reference, ScopeLookup, Variable } from 'shift-scope';
+import { traverse } from 'shift-traverser';
+import { SimpleIdentifier } from './types';
+import { getRootIdentifier, isDeepSimilar, isMemberAssignment, isMemberExpression } from './util';
+const { query } = require('shift-query');
 
 export enum ImpureFunctionQualities {
   ThroughAccess,
@@ -13,11 +13,17 @@ export enum ImpureFunctionQualities {
   CallsImpureFunctions,
 }
 
+/**
+ * @public
+ */
 export enum PureFunctionVerdict {
   Probably = 'Probably',
   ProbablyNot = 'ProbablyNot',
 }
 
+/**
+ * @public
+ */
 export interface PureFunctionAssessmentOptions {
   fnAllowList?: string[];
 }
@@ -37,6 +43,9 @@ function processAllowList(fnsSrc: string[]): CallExpression[] {
   });
 }
 
+/**
+ * @public
+ */
 export class PureFunctionAssessment {
   verdict: PureFunctionVerdict = PureFunctionVerdict.ProbablyNot;
   qualities: Set<ImpureFunctionQualities> = new Set();
@@ -44,7 +53,7 @@ export class PureFunctionAssessment {
 
   constructor(fnNode: AssessmentNode, options: PureFunctionAssessmentOptions = {}) {
     this.node = fnNode;
-    const tempProgram = new Script({directives: [], statements: [fnNode]});
+    const tempProgram = new Script({ directives: [], statements: [fnNode] });
     const globalScope = shiftScope(tempProgram);
     const lookupTable = new ScopeLookup(globalScope);
 
@@ -71,7 +80,7 @@ export class PureFunctionAssessment {
     const fnAllowList = options.fnAllowList ? processAllowList(options.fnAllowList) : [];
 
     traverse(tempProgram, {
-      enter: function(node: Node, parent: Node) {
+      enter: function (node: Node, parent: Node) {
         if (node === fnNode) return;
         // need to hoist...
         if (node.type === 'FunctionDeclaration') {

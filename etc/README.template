@@ -1,0 +1,106 @@
+<%= title %>
+<%= repeat('-', title.length) %>
+
+`<%= api.name %>` is a suite of utility functions designed to analyze and modify JavaScript source files.
+
+It originated as a tool to reverse engineer obfuscated JavaScript but is general-purpose enough for arbitrary transformations.
+
+### Who is this for?
+
+Anyone who works with JavaScript ASTs (Abstract Syntax Trees). If you're not familiar with ASTs, here are a few use cases where they come in useful:
+
+- Automatic refactoring, making sweeping changes to JavaScript source files (Developers, QA).
+- Analyzing JavaScript for linting, complexity scoring, etc (Developers, QA).
+- Extracting API details to auto-generate documentation or tests (Developers, QA).
+- Scraping JavaScript for information or security vulnerabilities (Pen Testers, QA, Security Teams, Hacker types).
+- Programmatically transforming malicious or obfuscated JavaScript (Reverse Engineers).
+
+## Status
+
+Stable.
+
+## Installation
+
+```
+$ npm install <%= api.name %>
+```
+
+## Usage
+
+The script below finds and prints all literal strings in a script.
+
+```js
+<%= example %>
+```
+
+### Advanced Example
+
+This script takes the obfuscated source and turns it into something much more readable.
+
+```js
+<%= exampleDeobfuscation %>
+```
+
+## Query Syntax
+
+The query syntax is from [`shift-query`](https://github.com/jsoverson/shift-query) (which is a port of [esquery](https://github.com/estools/esquery)) and closely resemble CSS selector syntax.
+
+The following selectors are supported:
+* AST node type: `FunctionDeclaration`
+* [wildcard](http://dev.w3.org/csswg/selectors4/#universal-selector): `*`
+* [attribute existence](http://dev.w3.org/csswg/selectors4/#attribute-selectors): `[attr]`
+* [attribute value](http://dev.w3.org/csswg/selectors4/#attribute-selectors): `[attr="foo"]` or `[attr=123]`
+* attribute regex: `[attr=/foo.*/]`
+* attribute conditons: `[attr!="foo"]`, `[attr>2]`, `[attr<3]`, `[attr>=2]`, or `[attr<=3]` 
+* nested attribute: `[attr.level2="foo"]`
+* field: `FunctionDeclaration > IdentifierExpression.name`
+* [First](http://dev.w3.org/csswg/selectors4/#the-first-child-pseudo) or [last](http://dev.w3.org/csswg/selectors4/#the-last-child-pseudo) child: `:first-child` or `:last-child`
+* [nth-child](http://dev.w3.org/csswg/selectors4/#the-nth-child-pseudo) (no ax+b support): `:nth-child(2)`
+* [nth-last-child](http://dev.w3.org/csswg/selectors4/#the-nth-last-child-pseudo) (no ax+b support): `:nth-last-child(1)`
+* [descendant](http://dev.w3.org/csswg/selectors4/#descendant-combinators): `ancestor descendant`
+* [child](http://dev.w3.org/csswg/selectors4/#child-combinators): `parent > child`
+* [following sibling](http://dev.w3.org/csswg/selectors4/#general-sibling-combinators): `node ~ sibling`
+* [adjacent sibling](http://dev.w3.org/csswg/selectors4/#adjacent-sibling-combinators): `node + adjacent`
+* [negation](http://dev.w3.org/csswg/selectors4/#negation-pseudo): `:not(ExpressionStatement)`
+* [matches-any](http://dev.w3.org/csswg/selectors4/#matches): `:matches([attr] > :first-child, :last-child)`
+* [subject indicator](http://dev.w3.org/csswg/selectors4/#subject): `!IfStatement > [name="foo"]`
+* class of AST node: `:statement`, `:expression`, `:declaration`, `:function`, or `:target`
+
+## Useful sites & tools
+
+- [Shift-query's online sandbox](https://jsoverson.github.io/shift-query-demo/) to test queries quickly.
+- [Shift-query CLI tool](https://www.npmjs.com/package/shift-query-cli) to query JavaScript on the command line.
+- [AST Explorer](https://astexplorer.net/) to explore JavaScript AST's visually (make sure to select "shift" on the top menu bar).
+- [Shift-AST.org](https://shift-ast.org/) - home of the Shift JavaScript tool suite.
+
+## API
+<% let refactorDef = exports['shift-refactor!refactor:function(1)']; %>
+### `refactor(string | Shift AST)`
+
+<%= printTsDoc(refactorDef) %>
+
+## Refactor Query Object
+
+The API is meant to look and feel like jQuery since – like jQuery – it works with CSS-style queries and regularly accesses nodes on a tree. Each query object is both a function and an instance of the internal `RefactorSession` class.
+
+Calling the query object as a function will produce a new query object, You can call a refactor query with a query to produce a new query object with the new nodes or you can call methods off the object to act on the nodes already selected. The examples prefix refactor query objects with a `$` to indicate they are refactor query objects and not naked Nodes or other objects.
+
+### Example
+
+```js
+const { refactor } = require('shift-refactor');
+
+const $script = refactor(src);
+const $variableDecls = $script('VariableDeclarationStatement')
+const $bindingIdentifiers = $variableDecls('BindingIdentifier');
+const names = $bindingIdentifiers.map(node => node.name);
+```
+
+### Methods
+<% const members = exports['shift-refactor!RefactorSessionChainable:class'].members.filter(m => m.kind !== 'Constructor').sort((a,b) => a.name.localeCompare(b.name));%><% members.forEach((member) => {%>
+- [`<%= callSignature(member)%>`](<%= linkify(callSignature(member)) %>)<%});%>
+<% members.forEach((member) => {%>
+#### `<%= callSignature(member) %>`
+
+<%= printTsDoc(member) %>
+<% }); %>

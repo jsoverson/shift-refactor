@@ -1,29 +1,20 @@
 import {
-  Node,
-  Statement,
-  LiteralStringExpression,
-  LiteralInfinityExpression,
-  LiteralNumericExpression,
-  LiteralNullExpression,
-  LiteralRegExpExpression,
-  Script,
-  ExpressionStatement,
-  FormalParameters,
   BindingIdentifier,
-  UnaryExpression,
   ComputedMemberAssignmentTarget,
+  ComputedMemberExpression, ExpressionStatement,
+  FormalParameters,
+  IdentifierExpression, LiteralInfinityExpression,
+  LiteralNullExpression, LiteralNumericExpression,
+  LiteralRegExpExpression, LiteralStringExpression, Node,
+  Script, Statement,
   StaticMemberAssignmentTarget,
-  StaticMemberExpression,
-  ComputedMemberExpression,
-  IdentifierExpression,
+  StaticMemberExpression, UnaryExpression
 } from 'shift-ast';
-import { SelectorOrNode, RefactorError } from './types';
 import { Scope } from 'shift-scope';
-import { BaseIdGenerator } from './id-generator';
 import traverser from 'shift-traverser';
-import { mkdir } from 'fs';
+import { BaseIdGenerator } from '../id-generator/id-generator';
 import { query } from './query';
-import { RefactorSession } from './refactor-session';
+import { RefactorError, SelectorOrNode } from './types';
 
 export function copy(object: any) {
   return JSON.parse(JSON.stringify(object));

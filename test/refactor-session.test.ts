@@ -11,7 +11,7 @@ import {
 } from 'shift-ast';
 import { parseScript as parse, parseScript } from 'shift-parser';
 import { RefactorSession } from '../src/refactor-session';
-import { RefactorError } from '../src/types';
+import { RefactorError } from '../src/misc/types';
 import { describe } from 'mocha';
 //@ts-ignore VSCode bug? VSC is complaining about this import but TypeScript is fine with it.
 import { Scope } from 'shift-scope';
@@ -49,7 +49,8 @@ describe('RefactorSession', () => {
         const refactor = new RefactorSession(ast);
         refactor.prepend(
           `ExpressionStatement[expression.type="CallExpression"]`,
-          (node: { expression: { callee: { name: any } } }) => `console.log("Calling ${node.expression.callee.name}()")`,
+          //@ts-ignore
+          (node: Node) => `console.log("Calling ${node.expression.callee.name}()")`,
         );
         expect(refactor.first()).to.deep.equal(parse('function foo(){}\nconsole.log("Calling foo()");\nfoo();'));
       });
@@ -149,7 +150,7 @@ describe('RefactorSession', () => {
       let script = new RefactorSession(`foo(a)`);
       await script.replaceAsync(
         `IdentifierExpression[name="a"]`,
-        async (node: any) => await new IdentifierExpression({ name: 'b' }),
+        async (node: Node) => await new IdentifierExpression({ name: 'b' }),
       );
       expect(script.first()).to.deep.equal(parse('foo(b)'));
     });
@@ -196,7 +197,8 @@ describe('RefactorSession', () => {
       const refactor = new RefactorSession(ast);
       refactor.replace(
         `IdentifierExpression[name="a"]`,
-        (node: { name: string }) => new IdentifierExpression({ name: node.name + 'b' }),
+        // @ts-ignore
+        (node: Node) => new IdentifierExpression({ name: node.name + 'b' }),
       );
       expect(refactor.first()).to.deep.equal(parse('foo(ab)'));
     });
@@ -216,7 +218,8 @@ describe('RefactorSession', () => {
     it('should accept source containing a lone string from a passed function (catch directive case)', () => {
       let ast = parse(`foo(a)`);
       const refactor = new RefactorSession(ast);
-      refactor.replace(`IdentifierExpression[name="a"]`, (node: { name: any }) => `"${node.name}"`);
+      //@ts-ignore
+      refactor.replace(`IdentifierExpression[name="a"]`, (node: Node) => `"${node.name}"`);
       expect(refactor.first()).to.deep.equal(parse("foo('a')"));
     });
     it('should accept raw source from a passed function to replace expressions', () => {
@@ -239,11 +242,9 @@ describe('RefactorSession', () => {
       const refactor = new RefactorSession(ast);
       refactor.replaceRecursive(
         `ComputedMemberExpression[expression.type="LiteralStringExpression"]`,
-        (node: { object: any; expression: { value: any } }) =>
-          new StaticMemberExpression({
-            object: node.object,
-            property: node.expression.value,
-          }),
+        (node: Node) =>
+          //@ts-ignore
+          new StaticMemberExpression({ object: node.object, property: node.expression.value }),
       );
       expect(refactor.first()).to.deep.equal(parse('a.b.c'));
     });

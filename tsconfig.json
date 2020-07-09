@@ -1,6 +1,7 @@
 {
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "scripts/**/*"
   ],
   "exclude": [
     "node_modules"
@@ -69,5 +70,38 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
     /* Advanced Options */
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
+  },
+  "typedocOptions": {
+    "name": "Shift Refactor",
+    "mode": "modules",
+    // "out": "generated/docs/",
+    "excludeExternals": true,
+    "stripInternal": true,
+    "excludeNotExported": true,
+    "excludePrivate": true,
+    "hideBreadcrumbs": true,
+    "categorizeByGroup": false,
+    "hideGenerator": true,
+    "disableSources": true,
+    "disableOutputCheck": true,
+    "inputFiles": [
+      // "src/index.ts",
+      "src/refactor-session-chainable.ts"
+    ],
+    "json": "generated/typedoc.json",
+    "exclude": [
+      "adjectives.ts",
+      "nouns.ts",
+      "pure-functions.ts",
+      "parser.ts",
+      "query.ts",
+      "id-generator.ts",
+      "id-generator.ts",
+    ],
+    "readme": "none",
+    "excludeTags": [
+      "assert",
+    ],
+    "toc": []
   }
 }

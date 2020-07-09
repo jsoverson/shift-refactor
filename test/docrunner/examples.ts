@@ -2,7 +2,7 @@
 import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
 import * as tsdoc from '@microsoft/api-extractor-model/node_modules/@microsoft/tsdoc';
 import vm from 'vm';
-import api from '../../temp/shift-refactor.api.json';
+import api from '../../generated/shift-refactor.api.json';
 
 const { testFunction, wrapAssertion } = require('./source-parts');
 
