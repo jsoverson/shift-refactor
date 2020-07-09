@@ -171,14 +171,11 @@ const names = $bindingIdentifiers.map(node => node.name);
 - [`.first()`](#first)
 - [`.forEach(iterator)`](#foreachiterator)
 - [`.get(index)`](#getindex)
-- [`.length()`](#length)
 - [`.logOut()`](#logout)
 - [`.lookupVariable()`](#lookupvariable)
 - [`.lookupVariableByName(name)`](#lookupvariablebynamename)
 - [`.map(iterator)`](#mapiterator)
-- [`.nodes()`](#nodes)
 - [`.parents()`](#parents)
-- [`.plugins()`](#plugins)
 - [`.prepend(replacer)`](#prependreplacer)
 - [`.print()`](#print)
 - [`.query(selector)`](#queryselector)
@@ -187,8 +184,6 @@ const names = $bindingIdentifiers.map(node => node.name);
 - [`.replace(replacer)`](#replacereplacer)
 - [`.replaceAsync(replacer)`](#replaceasyncreplacer)
 - [`.replaceChildren(query, replacer)`](#replacechildrenquery-replacer)
-- [`.root()`](#root)
-- [`.session()`](#session)
 - [`.toJSON()`](#tojson)
 
 #### `.$(queryOrNodes)`
@@ -478,10 +473,6 @@ $script = refactor(src);
 const thirdString = $script('LiteralStringExpression').get(2);
 ```
 
-#### `.length()`
-
-
-
 #### `.logOut()`
 
 `console.log()`s the selected nodes. Useful for inserting into a chain to see what nodes you are working with.
@@ -568,10 +559,6 @@ $script = refactor(src);
 const values = $script('BindingIdentifier').map(node => node.name);
 ```
 
-#### `.nodes()`
-
-
-
 #### `.parents()`
 
 Retrieve parent node(s)
@@ -589,10 +576,6 @@ $script = refactor(src);
 const declarators = $script('VariableDeclarator');
 const declaration = declarators.parents();
 ```
-
-#### `.plugins()`
-
-
 
 #### `.prepend(replacer)`
 
@@ -773,14 +756,6 @@ $script.replaceChildren(
  (node) => new Shift.LiteralNumericExpression({value: node.left.value + node.right.value})
 );
 ```
-
-#### `.root()`
-
-
-
-#### `.session()`
-
-
 
 #### `.toJSON()`
 
