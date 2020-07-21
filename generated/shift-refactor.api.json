@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "toolPackage": "shift-refactor",
-    "toolVersion": "0.3.1",
+    "toolPackage": "@microsoft/api-extractor",
+    "toolVersion": "7.9.2",
     "schemaVersion": 1003,
     "oldestForwardsCompatibleVersion": 1001
   },

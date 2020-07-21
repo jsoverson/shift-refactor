@@ -22,10 +22,10 @@ import { Statement } from 'shift-ast';
 import { Variable } from 'shift-scope';
 import { VariableDeclarator } from 'shift-ast';
 
-// @public (undocumented)
+// @public
 export type AsyncReplacer = Replacer | ((node: Node) => Promise<Node | string>);
 
-// @public (undocumented)
+// @public
 export class GlobalState {
     // Warning: (ae-forgotten-export) The symbol "GlobalStateOptions" needs to be exported by the entry point index.d.ts
     constructor(sourceOrNode: string | Node, config?: GlobalStateOptions);
@@ -111,16 +111,16 @@ export enum PureFunctionVerdict {
 
 // Warning: (ae-forgotten-export) The symbol "RefactorQueryAPI" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export function refactor(input: string | Node, options?: GlobalStateOptions): RefactorQueryAPI;
 
-// @public (undocumented)
+// @public
 export class RefactorError extends Error {
 }
 
 // Warning: (ae-internal-missing-underscore) The name "RefactorSession" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @internal @deprecated (undocumented)
+// @internal @deprecated
 export class RefactorSession {
     // (undocumented)
     $(querySessionOrNodes: SelectorOrNode | RefactorSession): RefactorSession;
@@ -183,75 +183,49 @@ export class RefactorSession {
 
 // Warning: (ae-forgotten-export) The symbol "Pluggable" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export interface RefactorSessionChainable extends Pluggable {
 }
 
-// @public (undocumented)
+// @public
 export class RefactorSessionChainable {
-    // (undocumented)
     $(queryOrNodes: SelectorOrNode): RefactorQueryAPI;
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "RefactorSession" which is marked as @internal
     constructor(session: RefactorSession);
-    // (undocumented)
     append(replacer: Replacer): RefactorSessionChainable;
-    // (undocumented)
     closest(closestSelector: string): RefactorQueryAPI;
-    // (undocumented)
     codegen(): any[];
     // @internal (undocumented)
     static create(session: RefactorSession): RefactorQueryAPI;
-    // (undocumented)
     declarations(): Declaration[][];
-    // (undocumented)
     delete(): this;
-    // (undocumented)
     find(iterator: (node: any, i?: number) => any): RefactorQueryAPI;
-    // (undocumented)
     findMatchingExpression(sampleSrc: string): RefactorQueryAPI;
-    // (undocumented)
     findMatchingStatement(sampleSrc: string): RefactorQueryAPI;
-    // (undocumented)
     findOne(selectorOrNode: string): RefactorQueryAPI;
-    // (undocumented)
     first(): Node;
-    // (undocumented)
     forEach(iterator: (node: any, i?: number) => any): RefactorSessionChainable;
-    // (undocumented)
     get(index: number): Node;
     // (undocumented)
     get length(): number;
-    // (undocumented)
     logOut(): this;
-    // (undocumented)
     lookupVariable(): Variable[];
-    // (undocumented)
     lookupVariableByName(name: string): Variable[];
-    // (undocumented)
     map(iterator: (node: any, i?: number) => any): any[];
     // (undocumented)
     get nodes(): Node[];
-    // (undocumented)
     parents(): RefactorQueryAPI;
     // Warning: (ae-forgotten-export) The symbol "Plugin" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     static plugins: Plugin[];
-    // (undocumented)
     prepend(replacer: Replacer): RefactorSessionChainable;
-    // (undocumented)
     print(): any;
-    // (undocumented)
     query(selector: string | string[]): RefactorQueryAPI;
-    // (undocumented)
     references(): Reference[][];
-    // (undocumented)
     rename(newName: string): this;
-    // (undocumented)
     replace(replacer: Replacer): RefactorSessionChainable;
-    // (undocumented)
     replaceAsync(replacer: AsyncReplacer): Promise<number>;
-    // (undocumented)
     replaceChildren(query: SelectorOrNode, replacer: Replacer): RefactorSessionChainable;
     // (undocumented)
     get root(): Node;
@@ -259,7 +233,6 @@ export class RefactorSessionChainable {
     //
     // (undocumented)
     session: RefactorSession;
-    // (undocumented)
     toJSON(): string;
     // Warning: (ae-forgotten-export) The symbol "Constructor" needs to be exported by the entry point index.d.ts
     //
@@ -267,10 +240,10 @@ export class RefactorSessionChainable {
     static with<S extends Constructor<any> & Pluggable, T extends Plugin>(this: S, plugin: T): S & Pluggable & Constructor<ReturnType<T>>;
 }
 
-// @public (undocumented)
+// @public
 export type Replacer = Node | string | ((node: Node) => string | Node);
 
-// @public (undocumented)
+// @public
 export type SelectorOrNode = string | string[] | Node | Node[];
 
 

@@ -65,16 +65,17 @@
     "typescript": "^3.9.4"
   },
   "scripts": {
-    "build": "tsc",
-    "compile": "npm run clean && tsc --declaration",
+    "build": "tsc --declaration",
+    "build-all": "npm run compile && npm run extract-api && npm run generate-docs",
+    "compile": "npm run clean && npm run build",
     "clean": "rm -rf dist && rm -rf generated",
     "prepublishOnly": "npm run compile",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "watch": "npm run clean && tsc -w --declaration",
     "generate-docs": "ts-node scripts/doc-generator.ts",
-    "api-extractor": "ts-node scripts/api-extractor.ts",
+    "extract-api": "ts-node scripts/api-extractor.ts",
     "docrunner": "ts-node -O '{\"resolveJsonModule\":true}' test/docrunner/examples.ts",
-    "test-examples": "npm run api-extractor && npm run docrunner",
+    "test-examples": "npm run extract-api && npm run docrunner",
     "test": "mocha"
   },
   "author": "Jarrod Overson",
