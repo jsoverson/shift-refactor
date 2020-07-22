@@ -901,7 +901,9 @@ export class RefactorSessionChainable {
   }
 
   /**
-   * Returns the selects the statements for the selected nodes. Does nothing for nodes that have no statements property.
+   * Returns the selects the statements for the selected nodes. Note: it will "uplevel" the inner statements of nodes with a `.body` property.
+   *
+   * Does nothing for nodes that have no statements property.
    *
    * @example
    *
@@ -928,9 +930,9 @@ export class RefactorSessionChainable {
    * @public
    */
   statements() {
-    const statements: Statement[] = this.filter(isNodeWithStatements).flatMap(
-      (node: NodesWithStatements) => node.statements,
-    );
+    const statements: Statement[] = this.map(innerBodyStatements)
+      .filter(isNodeWithStatements)
+      .flatMap((node: NodesWithStatements) => node.statements);
     return this.$(statements);
   }
 
@@ -1193,7 +1195,7 @@ export function refactor(input: string | Node, options?: GlobalStateOptions): Re
 */
 import {FunctionDeclaration} from 'shift-ast';
 import {PureFunctionAssessment, PureFunctionAssessmentOptions} from './refactor-plugin-unsafe';
-import {isNodeWithStatements} from './misc/util';
+import {isNodeWithStatements, innerBodyStatements} from './misc/util';
 import {parseScript} from 'shift-parser';
 import {matches} from './misc/query';
 const sorry = function(): PureFunctionAssessment | PureFunctionAssessmentOptions | FunctionDeclaration | undefined {

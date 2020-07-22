@@ -77,6 +77,14 @@ describe('chainable interface', () => {
     expect($s(firstFn).nameString()).to.equal('foo');
   });
 
+  it('statements should also get .body.statements', () => {
+    const src = `try { var foo = 1; } catch(e){}`;
+    const $s = refactor(src);
+    const innerStatements = $s($s.statements().first('TryCatchStatement')).statements();
+    expect(innerStatements.length).to.equal(1);
+    expect(innerStatements.first().type).to.equal('VariableDeclarationStatement');
+  });
+
   describe('methods w/o arguments', () => {
     it('.delete() should delete self', () => {
       const src = `idExp;function foo(){}\nfoo();`;

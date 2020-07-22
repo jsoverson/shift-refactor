@@ -50,6 +50,10 @@ export function isNodeWithStatements(input: any): input is NodesWithStatements {
   return 'statements' in input;
 }
 
+export function innerBodyStatements(input: any): Node {
+  return 'body' in input ? input.body : input;
+}
+
 export function isLiteral(
   input: any,
 ): input is
