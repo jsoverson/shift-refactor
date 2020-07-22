@@ -1,20 +1,27 @@
 import {
   BindingIdentifier,
   ComputedMemberAssignmentTarget,
-  ComputedMemberExpression, ExpressionStatement,
+  ComputedMemberExpression,
+  ExpressionStatement,
   FormalParameters,
-  IdentifierExpression, LiteralInfinityExpression,
-  LiteralNullExpression, LiteralNumericExpression,
-  LiteralRegExpExpression, LiteralStringExpression, Node,
-  Script, Statement,
+  IdentifierExpression,
+  LiteralInfinityExpression,
+  LiteralNullExpression,
+  LiteralNumericExpression,
+  LiteralRegExpExpression,
+  LiteralStringExpression,
+  Node,
+  Script,
+  Statement,
   StaticMemberAssignmentTarget,
-  StaticMemberExpression, UnaryExpression
+  StaticMemberExpression,
+  UnaryExpression,
 } from 'shift-ast';
-import { Scope } from 'shift-scope';
+import {Scope} from 'shift-scope';
 import traverser from 'shift-traverser';
-import { BaseIdGenerator } from '../id-generator/id-generator';
-import { query } from './query';
-import { RefactorError, SelectorOrNode } from './types';
+import {BaseIdGenerator} from '../id-generator/id-generator';
+import {query} from './query';
+import {RefactorError, SelectorOrNode, NodesWithStatements} from './types';
 
 export function copy(object: any) {
   return JSON.parse(JSON.stringify(object));
@@ -39,6 +46,10 @@ export function forceIntoArray<T>(input: T | T[]): T[] {
   return isArray(input) ? input : [input];
 }
 
+export function isNodeWithStatements(input: any): input is NodesWithStatements {
+  return 'statements' in input;
+}
+
 export function isLiteral(
   input: any,
 ): input is
@@ -60,12 +71,13 @@ export function findNodes(ast: Node[], input: SelectorOrNode): Node[] {
   if (isString(input)) return query(ast, input);
   else if (isArray(input)) {
     if (isString(input[0])) {
-      return (input as any).filter((x: string | Node): x is string => typeof x === 'string').flatMap((x: string) => query(ast, x))
+      return (input as any)
+        .filter((x: string | Node): x is string => typeof x === 'string')
+        .flatMap((x: string) => query(ast, x));
     } else {
       return input as Node[];
     }
-  }
-  else if (isShiftNode(input)) return [input];
+  } else if (isShiftNode(input)) return [input];
   else return [];
 }
 
@@ -140,7 +152,12 @@ export function isDeepSimilar(partial: any, actual: any): boolean {
   if (partial === null && actual === null) return true;
   for (let key in partial) {
     if (isArray(partial[key])) {
-      similar = key in actual && isArray(actual[key]) ? (partial[key].length === 0 ? true : isDeepSimilar(partial[key], actual[key])) : false;
+      similar =
+        key in actual && isArray(actual[key])
+          ? partial[key].length === 0
+            ? true
+            : isDeepSimilar(partial[key], actual[key])
+          : false;
     } else if (typeof partial[key] === 'object') {
       similar = key in actual ? isDeepSimilar(partial[key], actual[key]) : false;
     } else {

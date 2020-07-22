@@ -20,5 +20,6 @@
   "mochaExplorer.files": "test/**/*.test.ts",
   "mochaExplorer.require": "ts-node/register",
   "mochaExplorer.debuggerConfig": "Debug Mocha Tests",
-  "peacock.color": "#1f2e39"
+  "peacock.color": "#1f2e39",
+  "debug.javascript.usePreview": false
 }

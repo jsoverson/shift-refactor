@@ -199,11 +199,12 @@ export class RefactorSessionChainable {
     static create(session: RefactorSession): RefactorQueryAPI;
     declarations(): Declaration[][];
     delete(): this;
+    filter(iterator: (node: any, i?: number) => any): any[];
     find(iterator: (node: any, i?: number) => any): RefactorQueryAPI;
     findMatchingExpression(sampleSrc: string): RefactorQueryAPI;
     findMatchingStatement(sampleSrc: string): RefactorQueryAPI;
     findOne(selectorOrNode: string): RefactorQueryAPI;
-    first(): Node;
+    first(selector?: string): Node;
     forEach(iterator: (node: any, i?: number) => any): RefactorSessionChainable;
     get(index: number): Node;
     // (undocumented)
@@ -212,6 +213,7 @@ export class RefactorSessionChainable {
     lookupVariable(): Variable[];
     lookupVariableByName(name: string): Variable[];
     map(iterator: (node: any, i?: number) => any): any[];
+    nameString(): string;
     // (undocumented)
     get nodes(): Node[];
     parents(): RefactorQueryAPI;
@@ -233,6 +235,7 @@ export class RefactorSessionChainable {
     //
     // (undocumented)
     session: RefactorSession;
+    statements(): RefactorQueryAPI;
     toJSON(): string;
     // Warning: (ae-forgotten-export) The symbol "Constructor" needs to be exported by the entry point index.d.ts
     //
