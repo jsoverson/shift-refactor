@@ -73,11 +73,12 @@ class RefactorSession {
     const replacement =
       typeof program === "string" ? parseScript(program) : null;
 
-    nodes.forEach(node => {
+    const replacedNodes=nodes.filter(node => {
       if (isFunction(program)) {
         const rv = program(node);
+        if(rv===node) return false;
         if (isShiftNode(rv)) {
-          this._queueReplacement(node, program(node));
+          this._queueReplacement(node, rv);
         } else if (isString(rv)) {
           const returnedTree = parseScript(rv);
           if (isStatement(node)) {
@@ -98,10 +99,11 @@ class RefactorSession {
           copy(replacement.statements[0].expression)
         );
       }
+      return true;
     });
 
     if (this.autoCleanup) this.cleanup();
-    return nodes.length;
+    return replacedNodes.length;
   }
   replaceRecursive(selector, program) {
     const nodesReplaced = this.replace(selector, program);
