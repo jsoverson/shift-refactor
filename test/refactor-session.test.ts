@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import {expect} from 'chai';
 import {
   LiteralStringExpression,
   Node,
@@ -9,12 +9,12 @@ import {
   FunctionDeclaration,
   BindingIdentifier,
 } from 'shift-ast';
-import { parseScript as parse, parseScript } from 'shift-parser';
-import { RefactorSession } from '../src/refactor-session';
-import { RefactorError } from '../src/misc/types';
-import { describe } from 'mocha';
+import {parseScript as parse, parseScript} from 'shift-parser';
+import {RefactorSession} from '../src/refactor-session';
+import {RefactorError} from '../src/misc/types';
+import {describe} from 'mocha';
 //@ts-ignore VSCode bug? VSC is complaining about this import but TypeScript is fine with it.
-import { Scope } from 'shift-scope';
+import {Scope} from 'shift-scope';
 
 describe('RefactorSession', () => {
   it('.query()', () => {
@@ -36,7 +36,7 @@ describe('RefactorSession', () => {
       expect(refactor.first()).to.deep.equal(parse('foo();'));
     });
   });
-  describe('insert', function () {
+  describe('insert', function() {
     describe('prepend', () => {
       it('should insert statement before', () => {
         let ast = parse(`function foo(){}\nfoo();`);
@@ -66,7 +66,7 @@ describe('RefactorSession', () => {
         const shouldThrow = () => {
           refactor.prepend(
             `ExpressionStatement[expression.type="CallExpression"]`,
-            () => new IdentifierExpression({ name: 'breaks' }),
+            () => new IdentifierExpression({name: 'breaks'}),
           );
         };
         expect(shouldThrow).to.throw(RefactorError);
@@ -85,12 +85,13 @@ describe('RefactorSession', () => {
         let ast = parse(`function foo(){}\nfunction bar(){}\nfoo();`);
         const refactor = new RefactorSession(ast);
         refactor.append(`FunctionDeclaration`, `console.log(0)`);
-        expect(refactor.first())
-          .to.deep.equal(parse('function foo(){}\nconsole.log(0)\nfunction bar(){}\nconsole.log(0)\nfoo();'));
+        expect(refactor.first()).to.deep.equal(
+          parse('function foo(){}\nconsole.log(0)\nfunction bar(){}\nconsole.log(0)\nfoo();'),
+        );
       });
     });
   });
-  describe('rename', function () {
+  describe('rename', function() {
     it('rename function declarations', () => {
       let ast = parse(`function foo(){}\nfoo();`);
       const refactor = new RefactorSession(ast);
@@ -150,7 +151,7 @@ describe('RefactorSession', () => {
       let script = new RefactorSession(`foo(a)`);
       await script.replaceAsync(
         `IdentifierExpression[name="a"]`,
-        async (node: Node) => await new IdentifierExpression({ name: 'b' }),
+        async (node: Node) => await new IdentifierExpression({name: 'b'}),
       );
       expect(script.first()).to.deep.equal(parse('foo(b)'));
     });
@@ -160,7 +161,10 @@ describe('RefactorSession', () => {
       await script.replaceAsync(`IdentifierExpression[name="a"]`, async (node: any) => node);
       expect(script.first()).to.deep.equal(parse('foo(a)'));
       //@ts-ignore
-      expect(script.first().statements[0].expression.arguments[0]).to.equal(script.first().statements[0].expression.arguments[0]);
+      expect(script.first().statements[0].expression.arguments[0]).to.equal(
+        //@ts-ignore
+        script.first().statements[0].expression.arguments[0],
+      );
     });
   });
 
@@ -170,9 +174,9 @@ describe('RefactorSession', () => {
       const refactor = new RefactorSession(ast);
       expect(refactor.first()).to.equal(ast);
     });
-  })
+  });
 
-  describe('replace', function () {
+  describe('replace', function() {
     it('should replace statements', () => {
       let ast = parse(`function foo(){}\nfoo();`);
       const refactor = new RefactorSession(ast);
@@ -198,7 +202,7 @@ describe('RefactorSession', () => {
       refactor.replace(
         `IdentifierExpression[name="a"]`,
         // @ts-ignore
-        (node: Node) => new IdentifierExpression({ name: node.name + 'b' }),
+        (node: Node) => new IdentifierExpression({name: node.name + 'b'}),
       );
       expect(refactor.first()).to.deep.equal(parse('foo(ab)'));
     });
@@ -209,7 +213,7 @@ describe('RefactorSession', () => {
       const fn = () => {
         refactor.replace(
           `IdentifierExpression[name="a"]`,
-          async (node: any) => await new IdentifierExpression({ name: 'b' }),
+          async (node: any) => await new IdentifierExpression({name: 'b'}),
         );
       };
       expect(fn).to.throw();
@@ -236,7 +240,7 @@ describe('RefactorSession', () => {
     });
   });
 
-  describe('replaceRecursive', function () {
+  describe('replaceRecursive', function() {
     it('should replace until the query is empty', () => {
       let ast = parse(`a["b"]["c"]`);
       const refactor = new RefactorSession(ast);
@@ -244,7 +248,7 @@ describe('RefactorSession', () => {
         `ComputedMemberExpression[expression.type="LiteralStringExpression"]`,
         (node: Node) =>
           //@ts-ignore
-          new StaticMemberExpression({ object: node.object, property: node.expression.value }),
+          new StaticMemberExpression({object: node.object, property: node.expression.value}),
       );
       expect(refactor.first()).to.deep.equal(parse('a.b.c'));
     });
@@ -284,7 +288,7 @@ describe('RefactorSession', () => {
       //@ts-ignore blindly poking deeply
       expect(nodes[0]).to.deep.equal($script.first().statements[4].expression);
     });
-  })
+  });
   describe('.findMatchingStatement()', () => {
     it('should find nodes by complete sample source', () => {
       const $script = new RefactorSession(`function foo(){}\nfoo(); a = foo(); b = foo(2); b = foo();`);
@@ -300,7 +304,7 @@ describe('RefactorSession', () => {
       //@ts-ignore blindly poking deeply
       expect(nodes[0]).to.deep.equal($script.first().statements[0]);
     });
-  })
+  });
   it('.queryFrom()', () => {
     let ast = parse(`var a = 2; function foo(){var a = 4}`);
     const refactor = new RefactorSession(ast);
@@ -318,10 +322,10 @@ describe('RefactorSession', () => {
     it('should take in and print any ast', () => {
       let ast = parse(`var a = 2; function foo(){var a = 4}`);
       const refactor = new RefactorSession(ast);
-      const newSource = refactor.print(new LiteralStringExpression({ value: 'hi' }));
+      const newSource = refactor.print(new LiteralStringExpression({value: 'hi'}));
       expect(newSource).to.equal('"hi"');
     });
-  })
+  });
   describe('.closest()', () => {
     it('should walk up a tree looking for a matching selector', () => {
       let ast = parse(`var a = 2; function foo(){var b = 4}`);
@@ -337,7 +341,7 @@ describe('RefactorSession', () => {
       const parentStatement = refactor.closest(innerBinding, ':statement');
       expect(parentStatement.length).to.equal(1);
     });
-    it('should find all selected nodes\' parents', () => {
+    it("should find all selected nodes' parents", () => {
       let ast = parse(`function someFunction() {
         interestingFunction();
         }
@@ -349,8 +353,8 @@ describe('RefactorSession', () => {
       const decls = refactor.closest(calls, ':statement');
       expect(decls.length).to.equal(2);
     });
-  })
-  describe('lookupVariableByName', function () {
+  });
+  describe('lookupVariableByName', function() {
     it('should return variables by name', () => {
       let ast = parse(`var a = 2; var b = 3; (function(b){ var a = "foo" }())`);
       const refactor = new RefactorSession(ast);

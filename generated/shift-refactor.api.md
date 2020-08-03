@@ -7,23 +7,45 @@
 import { AssignmentExpression } from 'shift-ast';
 import { AssignmentTargetIdentifier } from 'shift-ast';
 import { BindingIdentifier } from 'shift-ast';
+import { Block } from 'shift-ast';
 import { ClassDeclaration } from 'shift-ast';
 import { ClassExpression } from 'shift-ast';
+import { ComputedMemberAssignmentTarget } from 'shift-ast';
+import { ComputedMemberExpression } from 'shift-ast';
 import { Declaration } from 'shift-scope';
 import { Expression } from 'shift-ast';
+import { FunctionBody } from 'shift-ast';
 import { FunctionDeclaration } from 'shift-ast';
 import { FunctionExpression } from 'shift-ast';
 import { IdentifierExpression } from 'shift-ast';
+import { LiteralInfinityExpression } from 'shift-ast';
+import { LiteralNullExpression } from 'shift-ast';
+import { LiteralNumericExpression } from 'shift-ast';
+import { LiteralRegExpExpression } from 'shift-ast';
+import { LiteralStringExpression } from 'shift-ast';
 import { Node } from 'shift-ast';
 import { Reference } from 'shift-scope';
 import { Scope } from 'shift-scope';
 import { ScopeLookup } from 'shift-scope';
+import { Script } from 'shift-ast';
 import { Statement } from 'shift-ast';
+import { StaticMemberAssignmentTarget } from 'shift-ast';
+import { StaticMemberExpression } from 'shift-ast';
+import { UnaryExpression } from 'shift-ast';
 import { Variable } from 'shift-scope';
 import { VariableDeclarator } from 'shift-ast';
 
 // @public
 export type AsyncReplacer = Replacer | ((node: Node) => Promise<Node | string>);
+
+// @public (undocumented)
+export type Constructor<T> = new (...args: any[]) => T;
+
+// @public (undocumented)
+export function copy(object: any): any;
+
+// @public (undocumented)
+export function getRootIdentifier(expr: StaticMemberExpression | ComputedMemberExpression | StaticMemberAssignmentTarget | ComputedMemberAssignmentTarget | IdentifierExpression): IdentifierExpression;
 
 // @public
 export class GlobalState {
@@ -51,9 +73,6 @@ export class GlobalState {
     insert(selectorOrNode: SelectorOrNode, replacer: Replacer, after?: boolean): ReturnType<typeof GlobalState.prototype.conditionalCleanup>;
     // (undocumented)
     isDirty(dirty?: boolean): boolean;
-    // Warning: (ae-forgotten-export) The symbol "SimpleIdentifierOwner" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "SimpleIdentifier" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     lookupScope(variableLookup: Variable | Variable[] | SimpleIdentifierOwner | SimpleIdentifierOwner[] | SimpleIdentifier | SimpleIdentifier[]): Scope | undefined;
     // (undocumented)
@@ -81,38 +100,34 @@ export class GlobalState {
 }
 
 // @public (undocumented)
-export class PureFunctionAssessment {
-    constructor(fnNode: AssessmentNode, options?: PureFunctionAssessmentOptions);
-    // Warning: (ae-forgotten-export) The symbol "AssessmentNode" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    node: AssessmentNode;
-    // Warning: (ae-forgotten-export) The symbol "ImpureFunctionQualities" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    qualities: Set<ImpureFunctionQualities>;
-    // (undocumented)
-    verdict: PureFunctionVerdict;
-}
+export function isDeepSimilar(partial: any, actual: any): boolean;
 
 // @public (undocumented)
-export interface PureFunctionAssessmentOptions {
-    // (undocumented)
-    fnAllowList?: string[];
-}
+export function isLiteral(input: any): input is LiteralStringExpression | LiteralInfinityExpression | LiteralNumericExpression | LiteralNullExpression | LiteralRegExpExpression | UnaryExpression;
 
 // @public (undocumented)
-export enum PureFunctionVerdict {
-    // (undocumented)
-    Probably = "Probably",
-    // (undocumented)
-    ProbablyNot = "ProbablyNot"
-}
+export function isMemberAssignment(node: Node): node is ComputedMemberAssignmentTarget | StaticMemberAssignmentTarget;
 
+// @public (undocumented)
+export function isMemberExpression(node: Node): node is ComputedMemberExpression | StaticMemberExpression;
+
+// @public (undocumented)
+export function isNodeWithStatements(input: any): input is NodesWithStatements;
+
+// @public (undocumented)
+export function isShiftNode(input: any): input is Node;
+
+// @public (undocumented)
+export function isStatement(input: any): input is Statement;
+
+// @public
+export type NodesWithStatements = Block | FunctionBody | Script;
+
+// Warning: (ae-forgotten-export) The symbol "Plugin" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "RefactorQueryAPI" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function refactor(input: string | Node, options?: GlobalStateOptions): RefactorQueryAPI;
+export function refactor(input: string | Node, ...plugins: Plugin[]): RefactorQueryAPI;
 
 // @public
 export class RefactorError extends Error {
@@ -217,8 +232,6 @@ export class RefactorSessionChainable {
     // (undocumented)
     get nodes(): Node[];
     parents(): RefactorQueryAPI;
-    // Warning: (ae-forgotten-export) The symbol "Plugin" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     static plugins: Plugin[];
     prepend(replacer: Replacer): RefactorSessionChainable;
@@ -237,8 +250,6 @@ export class RefactorSessionChainable {
     session: RefactorSession;
     statements(): RefactorQueryAPI;
     toJSON(): string;
-    // Warning: (ae-forgotten-export) The symbol "Constructor" needs to be exported by the entry point index.d.ts
-    //
     // @internal (undocumented)
     static with<S extends Constructor<any> & Pluggable, T extends Plugin>(this: S, plugin: T): S & Pluggable & Constructor<ReturnType<T>>;
 }
@@ -248,6 +259,12 @@ export type Replacer = Node | string | ((node: Node) => string | Node);
 
 // @public
 export type SelectorOrNode = string | string[] | Node | Node[];
+
+// @public
+export type SimpleIdentifier = BindingIdentifier | IdentifierExpression | AssignmentTargetIdentifier;
+
+// @public
+export type SimpleIdentifierOwner = AssignmentExpression | ClassDeclaration | ClassExpression | FunctionDeclaration | FunctionExpression | VariableDeclarator;
 
 
 // (No @packageDocumentation comment for this package)

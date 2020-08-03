@@ -1,43 +1,42 @@
-import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
+import {default as codegen, FormattedCodeGen} from '@jsoverson/shift-codegen';
 import DEBUG from 'debug';
 import deepEqual from 'fast-deep-equal';
+import {BindingIdentifier, Expression, IdentifierExpression, LiteralStringExpression, Node, Statement} from 'shift-ast';
+import {parseScript} from 'shift-parser';
+import {Declaration, Reference, Variable} from 'shift-scope';
+import {GlobalState} from './global-state';
+import {query} from './misc/query';
 import {
-  BindingIdentifier,
-  Expression,
-
-  IdentifierExpression,
-  Node,
-  Statement,
-  LiteralStringExpression
-} from 'shift-ast';
-import { parseScript } from 'shift-parser';
-import { Declaration, Reference, Variable } from 'shift-scope';
-import { GlobalState } from './global-state';
-import { query } from './misc/query';
-import { RefactorError, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner, AsyncReplacer } from './misc/types';
+  AsyncReplacer,
+  RefactorError,
+  Replacer,
+  SelectorOrNode,
+  SimpleIdentifier,
+  SimpleIdentifierOwner,
+} from './misc/types';
 import {
   copy,
   extractExpression,
   extractStatement,
   findNodes,
   isArray,
+  isDeepSimilar,
   isFunction,
   isShiftNode,
   isStatement,
   isString,
-  isDeepSimilar
 } from './misc/util';
-import { waterfallMap } from './misc/waterfall';
+import {waterfallMap} from './misc/waterfall';
 
 const debug = DEBUG('shift-refactor');
 
 /**
- * The Shift Refactor class that manages 
- * 
+ * The Shift Refactor class that manages
+ *
  * @deprecated
  * This was the original interface for shift-refactor pre-1.0. It remains similarly usable but is no longer intended to be instantiated directly.
  * Extend the chainable interface when necessary and use refactor() to instantiate. If a use case is not covered, submit an issue.
- * 
+ *
  * @internal
  */
 export class RefactorSession {
@@ -48,7 +47,8 @@ export class RefactorSession {
   constructor(sourceOrNodes: Node | Node[] | string, globalSession?: GlobalState) {
     let nodes: Node[], tree: Node;
     if (!globalSession) {
-      if (typeof sourceOrNodes === 'string' || !isArray(sourceOrNodes)) this.globalSession = new GlobalState(sourceOrNodes);
+      if (typeof sourceOrNodes === 'string' || !isArray(sourceOrNodes))
+        this.globalSession = new GlobalState(sourceOrNodes);
       else throw new Error('Only source or a single Script/Module node can be passed as input');
     } else {
       this.globalSession = globalSession;
@@ -76,7 +76,10 @@ export class RefactorSession {
   }
 
   subSession(querySessionOrNodes: SelectorOrNode | RefactorSession) {
-    const nodes = querySessionOrNodes instanceof RefactorSession ? querySessionOrNodes.nodes : findNodes(this.nodes, querySessionOrNodes);
+    const nodes =
+      querySessionOrNodes instanceof RefactorSession
+        ? querySessionOrNodes.nodes
+        : findNodes(this.nodes, querySessionOrNodes);
     const subSession = new RefactorSession(nodes, this.globalSession);
     return subSession;
   }
@@ -142,7 +145,7 @@ export class RefactorSession {
         } else {
           // if we have a directive, assume we parsed a single string and use it as a LiteralStringExpression
           if (replacementScript.directives.length > 0) {
-            replacement = new LiteralStringExpression({ value: replacementScript.directives[0].rawValue });
+            replacement = new LiteralStringExpression({value: replacementScript.directives[0].rawValue});
           } else if (replacementScript.statements[0].type === 'ExpressionStatement') {
             replacement = copy(replacementScript.statements[0].expression);
           }
@@ -297,4 +300,3 @@ export class RefactorSession {
     return codegen(ast || this.first(), generator);
   }
 }
-

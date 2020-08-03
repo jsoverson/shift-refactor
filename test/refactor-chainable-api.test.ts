@@ -83,6 +83,11 @@ describe('chainable interface', () => {
     const innerStatements = $s($s.statements().first('TryCatchStatement')).statements();
     expect(innerStatements.length).to.equal(1);
     expect(innerStatements.first().type).to.equal('VariableDeclarationStatement');
+    expect(
+      refactor(`!(function(){foo();}())`)('FunctionExpression')
+        .statements()
+        .first().type,
+    ).to.equal('ExpressionStatement');
   });
 
   describe('methods w/o arguments', () => {

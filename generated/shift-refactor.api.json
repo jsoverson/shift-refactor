@@ -73,6 +73,168 @@
           }
         },
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "shift-refactor!Constructor:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type Constructor<T> = "
+            },
+            {
+              "kind": "Content",
+              "text": "new (...args: any[]) => T"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Constructor",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!copy:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function copy(object: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "object",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "name": "copy"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!getRootIdentifier:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function getRootIdentifier(expr: "
+            },
+            {
+              "kind": "Reference",
+              "text": "StaticMemberExpression",
+              "canonicalReference": "shift-ast!StaticMemberExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComputedMemberExpression",
+              "canonicalReference": "shift-ast!ComputedMemberExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "StaticMemberAssignmentTarget",
+              "canonicalReference": "shift-ast!StaticMemberAssignmentTarget:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComputedMemberAssignmentTarget",
+              "canonicalReference": "shift-ast!ComputedMemberAssignmentTarget:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "IdentifierExpression",
+              "canonicalReference": "shift-ast!IdentifierExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "IdentifierExpression",
+              "canonicalReference": "shift-ast!IdentifierExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 11,
+            "endIndex": 12
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "expr",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 10
+              }
+            }
+          ],
+          "name": "getRootIdentifier"
+        },
+        {
           "kind": "Class",
           "canonicalReference": "shift-refactor!GlobalState:class",
           "docComment": "/**\n * Global State object for a script. Manages the root node, insertions, deletions, and replacements. All queries start from a global state and subqueries are child nodes.\n *\n * @remarks\n *\n * Most users won't need to instantiate this directly. Access an instance via `.globalSession` on any refactor query instance.\n *\n * @public\n */\n",
@@ -1249,259 +1411,489 @@
           "implementsTokenRanges": []
         },
         {
-          "kind": "Class",
-          "canonicalReference": "shift-refactor!PureFunctionAssessment:class",
-          "docComment": "/**\n * @public\n */\n",
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!isDeepSimilar:function(1)",
+          "docComment": "",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class PureFunctionAssessment "
+              "text": "export declare function isDeepSimilar(partial: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": ", actual: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "PureFunctionAssessment",
-          "members": [
+          "overloadIndex": 1,
+          "parameters": [
             {
-              "kind": "Constructor",
-              "canonicalReference": "shift-refactor!PureFunctionAssessment:constructor(1)",
-              "docComment": "/**\n * Constructs a new instance of the `PureFunctionAssessment` class\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "constructor(fnNode: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "AssessmentNode",
-                  "canonicalReference": "shift-refactor!~AssessmentNode:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", options?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "PureFunctionAssessmentOptions",
-                  "canonicalReference": "shift-refactor!PureFunctionAssessmentOptions:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ");"
-                }
-              ],
-              "releaseTag": "Public",
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "fnNode",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  }
-                },
-                {
-                  "parameterName": "options",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "shift-refactor!PureFunctionAssessment#node:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "node: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "AssessmentNode",
-                  "canonicalReference": "shift-refactor!~AssessmentNode:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "releaseTag": "Public",
-              "name": "node",
-              "propertyTypeTokenRange": {
+              "parameterName": "partial",
+              "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
-              },
-              "isStatic": false
+              }
             },
             {
-              "kind": "Property",
-              "canonicalReference": "shift-refactor!PureFunctionAssessment#qualities:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "qualities: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Set",
-                  "canonicalReference": "!Set:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ImpureFunctionQualities",
-                  "canonicalReference": "shift-refactor!ImpureFunctionQualities:enum"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "releaseTag": "Public",
-              "name": "qualities",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "shift-refactor!PureFunctionAssessment#verdict:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "verdict: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "PureFunctionVerdict",
-                  "canonicalReference": "shift-refactor!PureFunctionVerdict:enum"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "releaseTag": "Public",
-              "name": "verdict",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false
+              "parameterName": "actual",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
             }
           ],
-          "implementsTokenRanges": []
+          "name": "isDeepSimilar"
         },
         {
-          "kind": "Interface",
-          "canonicalReference": "shift-refactor!PureFunctionAssessmentOptions:interface",
-          "docComment": "/**\n * @public\n */\n",
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!isLiteral:function(1)",
+          "docComment": "",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface PureFunctionAssessmentOptions "
-            }
-          ],
-          "releaseTag": "Public",
-          "name": "PureFunctionAssessmentOptions",
-          "members": [
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "shift-refactor!PureFunctionAssessmentOptions#fnAllowList:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "fnAllowList?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "releaseTag": "Public",
-              "name": "fnAllowList",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            }
-          ],
-          "extendsTokenRanges": []
-        },
-        {
-          "kind": "Enum",
-          "canonicalReference": "shift-refactor!PureFunctionVerdict:enum",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare enum PureFunctionVerdict "
-            }
-          ],
-          "releaseTag": "Public",
-          "name": "PureFunctionVerdict",
-          "members": [
-            {
-              "kind": "EnumMember",
-              "canonicalReference": "shift-refactor!PureFunctionVerdict.Probably:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "Probably = "
-                },
-                {
-                  "kind": "Content",
-                  "text": "\"Probably\""
-                }
-              ],
-              "releaseTag": "Public",
-              "name": "Probably",
-              "initializerTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
+              "text": "export declare function isLiteral(input: "
             },
             {
-              "kind": "EnumMember",
-              "canonicalReference": "shift-refactor!PureFunctionVerdict.ProbablyNot:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "ProbablyNot = "
-                },
-                {
-                  "kind": "Content",
-                  "text": "\"ProbablyNot\""
-                }
-              ],
-              "releaseTag": "Public",
-              "name": "ProbablyNot",
-              "initializerTokenRange": {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "input",
+              "canonicalReference": "shift-refactor!~input"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "LiteralStringExpression",
+              "canonicalReference": "shift-ast!LiteralStringExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "LiteralInfinityExpression",
+              "canonicalReference": "shift-ast!LiteralInfinityExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "LiteralNumericExpression",
+              "canonicalReference": "shift-ast!LiteralNumericExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "LiteralNullExpression",
+              "canonicalReference": "shift-ast!LiteralNullExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "LiteralRegExpExpression",
+              "canonicalReference": "shift-ast!LiteralRegExpExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnaryExpression",
+              "canonicalReference": "shift-ast!UnaryExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 16
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
               }
             }
-          ]
+          ],
+          "name": "isLiteral"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!isMemberAssignment:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isMemberAssignment(node: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "node",
+              "canonicalReference": "shift-refactor!~node"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComputedMemberAssignmentTarget",
+              "canonicalReference": "shift-ast!ComputedMemberAssignmentTarget:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "StaticMemberAssignmentTarget",
+              "canonicalReference": "shift-ast!StaticMemberAssignmentTarget:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 8
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "node",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "name": "isMemberAssignment"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!isMemberExpression:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isMemberExpression(node: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "node",
+              "canonicalReference": "shift-refactor!~node"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComputedMemberExpression",
+              "canonicalReference": "shift-ast!ComputedMemberExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "StaticMemberExpression",
+              "canonicalReference": "shift-ast!StaticMemberExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 8
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "node",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "name": "isMemberExpression"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!isNodeWithStatements:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isNodeWithStatements(input: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "input",
+              "canonicalReference": "shift-refactor!~input"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "NodesWithStatements",
+              "canonicalReference": "shift-refactor!NodesWithStatements:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "name": "isNodeWithStatements"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!isShiftNode:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isShiftNode(input: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "input",
+              "canonicalReference": "shift-refactor!~input"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "Node",
+              "canonicalReference": "shift-ast!Node:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "name": "isShiftNode"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "shift-refactor!isStatement:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isStatement(input: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "input",
+              "canonicalReference": "shift-refactor!~input"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "Statement",
+              "canonicalReference": "shift-ast!Statement:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "name": "isStatement"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "shift-refactor!NodesWithStatements:type",
+          "docComment": "/**\n * Nodes that have statements\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type NodesWithStatements = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Block",
+              "canonicalReference": "shift-ast!Block:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "FunctionBody",
+              "canonicalReference": "shift-ast!FunctionBody:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Script",
+              "canonicalReference": "shift-ast!Script:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "NodesWithStatements",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
         },
         {
           "kind": "Function",
@@ -1523,12 +1915,16 @@
             },
             {
               "kind": "Content",
-              "text": ", options?: "
+              "text": ", ...plugins: "
             },
             {
               "kind": "Reference",
-              "text": "GlobalStateOptions",
-              "canonicalReference": "shift-refactor!GlobalStateOptions:interface"
+              "text": "Plugin",
+              "canonicalReference": "shift-refactor!~Plugin:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
             },
             {
               "kind": "Content",
@@ -1545,8 +1941,8 @@
             }
           ],
           "returnTypeTokenRange": {
-            "startIndex": 6,
-            "endIndex": 7
+            "startIndex": 7,
+            "endIndex": 8
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -1559,10 +1955,10 @@
               }
             },
             {
-              "parameterName": "options",
+              "parameterName": "plugins",
               "parameterTypeTokenRange": {
                 "startIndex": 4,
-                "endIndex": 5
+                "endIndex": 6
               }
             }
           ],
@@ -2935,7 +3331,7 @@
             {
               "kind": "Method",
               "canonicalReference": "shift-refactor!RefactorSessionChainable#statements:member(1)",
-              "docComment": "/**\n * Returns the selects the statements for the selected nodes. Does nothing for nodes that have no statements property.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * console.log(1);\n * console.log(2);\n * `\n *\n * $script = refactor(src);\n *\n * const rootStatements = $script.statements();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(rootStatements.length, 2);\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Returns the selects the statements for the selected nodes. Note: it will \"uplevel\" the inner statements of nodes with a `.body` property.\n *\n * Does nothing for nodes that have no statements property.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * console.log(1);\n * console.log(2);\n * `\n *\n * $script = refactor(src);\n *\n * const rootStatements = $script.statements();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(rootStatements.length, 2);\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -3110,6 +3506,121 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "shift-refactor!SimpleIdentifier:type",
+          "docComment": "/**\n * Identifiers that are easy to reason about\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type SimpleIdentifier = "
+            },
+            {
+              "kind": "Reference",
+              "text": "BindingIdentifier",
+              "canonicalReference": "shift-ast!BindingIdentifier:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "IdentifierExpression",
+              "canonicalReference": "shift-ast!IdentifierExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "AssignmentTargetIdentifier",
+              "canonicalReference": "shift-ast!AssignmentTargetIdentifier:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "SimpleIdentifier",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "shift-refactor!SimpleIdentifierOwner:type",
+          "docComment": "/**\n * Nodes containing a SimpleIdentifier that are similarly easy to reason about\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type SimpleIdentifierOwner = "
+            },
+            {
+              "kind": "Reference",
+              "text": "AssignmentExpression",
+              "canonicalReference": "shift-ast!AssignmentExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "ClassDeclaration",
+              "canonicalReference": "shift-ast!ClassDeclaration:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "ClassExpression",
+              "canonicalReference": "shift-ast!ClassExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "FunctionDeclaration",
+              "canonicalReference": "shift-ast!FunctionDeclaration:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "FunctionExpression",
+              "canonicalReference": "shift-ast!FunctionExpression:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "VariableDeclarator",
+              "canonicalReference": "shift-ast!VariableDeclarator:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "SimpleIdentifierOwner",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 12
           }
         }
       ]

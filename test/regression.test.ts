@@ -1,9 +1,9 @@
-import { refactor } from '../src/refactor-session-chainable';
-import { parseScript as parse } from 'shift-parser';
+import {refactor} from '../src/refactor-session-chainable';
+import {parseScript as parse} from 'shift-parser';
 import Shift from 'shift-ast';
 
-import { expect } from 'chai';
-describe('Regression', function () {
+import {expect} from 'chai';
+describe('Regression', function() {
   describe('https://github.com/jsoverson/shift-refactor/issues/3', () => {
     it('inserts should not mess up deletes', () => {
       let ast = parse(`var a = 2, b = 3;`);

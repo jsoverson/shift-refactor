@@ -1,17 +1,17 @@
-import {Node, Statement, Script} from 'shift-ast';
+import {Node, Statement} from 'shift-ast';
 import {Declaration, Reference, Variable} from 'shift-scope';
-import {GlobalState, GlobalStateOptions} from './global-state';
+import {GlobalState} from './global-state';
+import {matches} from './misc/query';
 import {
   AsyncReplacer,
   Constructor,
+  NodesWithStatements,
   Replacer,
   SelectorOrNode,
   SimpleIdentifier,
   SimpleIdentifierOwner,
-  NodesWithStatements,
 } from './misc/types';
-import commonMethods from './refactor-plugin-common';
-import unsafeMethods from './refactor-plugin-unsafe';
+import {innerBodyStatements, isNodeWithStatements} from './misc/util';
 import {RefactorSession} from './refactor-session';
 
 type Plugin = (instance: RefactorSessionChainable) => any;
@@ -84,12 +84,13 @@ export class RefactorSessionChainable {
    * @internal
    */
   static create(session: RefactorSession): RefactorQueryAPI {
-    const chainable = new RefactorChainableWithPlugins(session);
+    const Klass = this;
+    const chainable = new Klass(session);
     const prototype = Object.getPrototypeOf(chainable);
 
     const $query = function(selector: RefactorQueryInput): RefactorQueryAPI {
       const subSession = session.subSession(selector);
-      return RefactorChainableWithPlugins.create(subSession);
+      return Klass.create(subSession);
     };
 
     const hybridObject = Object.assign($query, chainable);
@@ -1151,14 +1152,12 @@ export class RefactorSessionChainable {
   }
 }
 
-const RefactorChainableWithPlugins = RefactorSessionChainable.with(unsafeMethods).with(commonMethods);
-
 /**
  * Refactor query object type
  */
 export type RefactorQueryAPI = {
   (selectorOrNode: RefactorQueryInput): RefactorQueryAPI;
-} & InstanceType<typeof RefactorChainableWithPlugins>;
+} & InstanceType<typeof RefactorSessionChainable>;
 
 /**
  * Create a refactor query object.
@@ -1183,21 +1182,12 @@ export type RefactorQueryAPI = {
  *
  * @public
  */
-export function refactor(input: string | Node, options?: GlobalStateOptions): RefactorQueryAPI {
-  const globalSession = new GlobalState(input, options);
+export function refactor(input: string | Node, ...plugins: Plugin[]): RefactorQueryAPI {
+  const globalSession = new GlobalState(input);
   const refactorSession = new RefactorSession(globalSession.root, globalSession);
-  return RefactorChainableWithPlugins.create(refactorSession);
+  if (plugins)
+    return plugins
+      .reduce((chainable, plugin) => chainable.with(plugin), RefactorSessionChainable)
+      .create(refactorSession) as any;
+  return RefactorSessionChainable.create(refactorSession);
 }
-
-/*
-  Ignore below. These types get rolled up as dynamic import()'s in the declaration if I don't import them
-  directly here and API Extractor doesn't support dynamic import()'s. Yeah.
-*/
-import {FunctionDeclaration} from 'shift-ast';
-import {PureFunctionAssessment, PureFunctionAssessmentOptions} from './refactor-plugin-unsafe';
-import {isNodeWithStatements, innerBodyStatements} from './misc/util';
-import {parseScript} from 'shift-parser';
-import {matches} from './misc/query';
-const sorry = function(): PureFunctionAssessment | PureFunctionAssessmentOptions | FunctionDeclaration | undefined {
-  return undefined;
-};

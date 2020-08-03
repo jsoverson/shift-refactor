@@ -1,10 +1,9 @@
-import DEBUG from 'debug';
-import fs from 'fs';
-import path, { parse } from 'path';
-import makeTemplate from 'lodash.template';
-import findRoot from 'find-root';
 import * as tsdoc from '@microsoft/api-extractor-model/node_modules/@microsoft/tsdoc';
-
+import DEBUG from 'debug';
+import findRoot from 'find-root';
+import fs from 'fs';
+import makeTemplate from 'lodash.template';
+import path from 'path';
 import json from '../generated/shift-refactor.api.json';
 
 const api: IApiItemJson = json;
@@ -20,15 +19,15 @@ interface IApiItemJson {
   members?: IApiItemJson[];
   docComment?: string;
   name?: string;
-  parameters?: { parameterName: string }[]
+  parameters?: {parameterName: string}[];
 }
 
 const customConfiguration: tsdoc.TSDocConfiguration = new tsdoc.TSDocConfiguration();
 customConfiguration.addTagDefinitions([
   new tsdoc.TSDocTagDefinition({
     tagName: '@assert',
-    syntaxKind: tsdoc.TSDocTagSyntaxKind.BlockTag
-  })
+    syntaxKind: tsdoc.TSDocTagSyntaxKind.BlockTag,
+  }),
 ]);
 
 const parser = new tsdoc.TSDocParser(customConfiguration);
@@ -36,8 +35,8 @@ const parser = new tsdoc.TSDocParser(customConfiguration);
 const debug = DEBUG('doc-generator');
 
 (function main() {
-  const context: { [x: string]: any } = {
-    title: "Shift Refactor",
+  const context: {[x: string]: any} = {
+    title: 'Shift Refactor',
     api,
     repeat,
     printTsDoc,
@@ -53,7 +52,7 @@ const debug = DEBUG('doc-generator');
 
   const markdown = template(context);
   fs.writeFileSync(path.join(projectRoot, 'README.md'), markdown);
-}())
+})();
 
 function repeat(str: string, times: number) {
   return new Array(times).fill(str).join('');
@@ -63,15 +62,30 @@ function docNodeReducer(text: string, node: tsdoc.DocNode): string {
   debug('handling kind %o', node.kind);
   let toAppend = '';
   switch (node.kind) {
-    case 'Paragraph': toAppend = reduceNode(node); break;
-    case 'PlainText': toAppend = (node as tsdoc.DocPlainText).text; break;
-    case 'SoftBreak': toAppend = '\n'; break;
-    case 'CodeSpan': toAppend = '`' + (node as tsdoc.DocCodeSpan).code + '`'; break;
-    case 'FencedCode': toAppend = '```js\n' + (node as tsdoc.DocCodeSpan).code.trim() + '\n```'; break;
-    case 'BlockTag': toAppend = reduceNode(node); break;
-    case 'Excerpt': toAppend = ''; // these seem to be @tags and we don't need those printed. May need to be revisited.
+    case 'Paragraph':
+      toAppend = reduceNode(node);
+      break;
+    case 'PlainText':
+      toAppend = (node as tsdoc.DocPlainText).text;
+      break;
+    case 'SoftBreak':
+      toAppend = '\n';
+      break;
+    case 'CodeSpan':
+      toAppend = '`' + (node as tsdoc.DocCodeSpan).code + '`';
+      break;
+    case 'FencedCode':
+      toAppend = '```js\n' + (node as tsdoc.DocCodeSpan).code.trim() + '\n```';
+      break;
+    case 'BlockTag':
+      toAppend = reduceNode(node);
+      break;
+    case 'Excerpt':
+      toAppend = ''; // these seem to be @tags and we don't need those printed. May need to be revisited.
     //case 'Excerpt': return text + (node as tsdoc.DocExcerpt).content.toString();
-    case 'Section': toAppend = reduceNode(node); break;
+    case 'Section':
+      toAppend = reduceNode(node);
+      break;
     default:
       throw new Error(`Unhandled kind ${node.kind}`);
   }
@@ -99,7 +113,11 @@ function callSignature(member: IApiItemJson) {
 }
 
 function linkify(str: string) {
-  return str.toLowerCase().replace(/\s+/g, '-').replace(/--+/g, '-').replace(/[^\$\w0-9\-]/g, '');
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/--+/g, '-')
+    .replace(/[^\$\w0-9\-]/g, '');
 }
 
 function getDoc(docString: string) {
@@ -112,8 +130,7 @@ function getDoc(docString: string) {
     example: example ? reduceNode(example.content) : '',
     remarks: reduceNode(docComment.remarksBlock),
     deprecated: reduceNode(docComment.deprecatedBlock),
-  }
+  };
   debug('got doc: %o', result);
   return result;
 }
-

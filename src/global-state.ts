@@ -1,14 +1,12 @@
-import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
-import debug from "debug";
-import { FunctionDeclaration, Node } from "shift-ast";
-import { parseScript } from "shift-parser";
-import shiftScope, { Declaration, Reference, Scope, ScopeLookup, Variable } from "shift-scope";
+import {default as codegen, FormattedCodeGen} from '@jsoverson/shift-codegen';
+import debug from 'debug';
+import {FunctionDeclaration, Node} from 'shift-ast';
+import {parseScript} from 'shift-parser';
+import shiftScope, {Declaration, Reference, Scope, ScopeLookup, Variable} from 'shift-scope';
 import traverser from 'shift-traverser';
-import { default as isValid } from 'shift-validator';
-import { RefactorSession } from "./refactor-session";
-import { RefactorError, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner } from "./misc/types";
-import { buildParentMap, copy, findNodes, isArray, isFunction, isShiftNode, isStatement, isString } from "./misc/util";
-
+import {default as isValid} from 'shift-validator';
+import {RefactorError, Replacer, SelectorOrNode, SimpleIdentifier, SimpleIdentifierOwner} from './misc/types';
+import {buildParentMap, copy, findNodes, isArray, isFunction, isShiftNode, isStatement, isString} from './misc/util';
 
 /**
  * Options for GlobalState
@@ -19,11 +17,11 @@ export interface GlobalStateOptions {
 
 /**
  * Global State object for a script. Manages the root node, insertions, deletions, and replacements. All queries start from a global state and subqueries are child nodes.
- * 
+ *
  * @remarks
- * 
+ *
  * Most users won't need to instantiate this directly. Access an instance via `.globalSession` on any refactor query instance.
- * 
+ *
  * @public
  */
 export class GlobalState {
@@ -62,7 +60,15 @@ export class GlobalState {
     this.getLookupTable();
   }
 
-  lookupScope(variableLookup: Variable | Variable[] | SimpleIdentifierOwner | SimpleIdentifierOwner[] | SimpleIdentifier | SimpleIdentifier[]) {
+  lookupScope(
+    variableLookup:
+      | Variable
+      | Variable[]
+      | SimpleIdentifierOwner
+      | SimpleIdentifierOwner[]
+      | SimpleIdentifier
+      | SimpleIdentifier[],
+  ) {
     if (isArray(variableLookup)) variableLookup = variableLookup[0];
 
     if (isShiftNode(variableLookup)) variableLookup = this.lookupVariable(variableLookup);
@@ -176,7 +182,7 @@ export class GlobalState {
     if (!this.isDirty()) return this;
     const _this = this;
     const result = traverser.replace(this.root, {
-      leave: function (node: Node, parent: Node) {
+      leave: function(node: Node, parent: Node) {
         if (node.type === 'VariableDeclarationStatement') {
           if (node.declaration.declarators.length === 0) return this.remove();
         }
@@ -213,7 +219,11 @@ export class GlobalState {
     return this;
   }
 
-  insert(selectorOrNode: SelectorOrNode, replacer: Replacer, after = false): ReturnType<typeof GlobalState.prototype.conditionalCleanup> {
+  insert(
+    selectorOrNode: SelectorOrNode,
+    replacer: Replacer,
+    after = false,
+  ): ReturnType<typeof GlobalState.prototype.conditionalCleanup> {
     const nodes = findNodes([this.root], selectorOrNode);
 
     let insertion: Node | null = null;
@@ -259,5 +269,4 @@ export class GlobalState {
   private rebuildParentMap() {
     this.parentMap = buildParentMap(this.root);
   }
-
 }

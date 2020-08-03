@@ -1,17 +1,16 @@
-
-import { default as codegen, FormattedCodeGen } from '@jsoverson/shift-codegen';
+import {default as codegen, FormattedCodeGen} from '@jsoverson/shift-codegen';
 import * as tsdoc from '@microsoft/api-extractor-model/node_modules/@microsoft/tsdoc';
 import vm from 'vm';
 import api from '../../generated/shift-refactor.api.json';
 
-const { testFunction, wrapAssertion } = require('./source-parts');
+const {testFunction, wrapAssertion} = require('./source-parts');
 
 const customConfiguration: tsdoc.TSDocConfiguration = new tsdoc.TSDocConfiguration();
 customConfiguration.addTagDefinitions([
   new tsdoc.TSDocTagDefinition({
     tagName: '@assert',
-    syntaxKind: tsdoc.TSDocTagSyntaxKind.BlockTag
-  })
+    syntaxKind: tsdoc.TSDocTagSyntaxKind.BlockTag,
+  }),
 ]);
 
 const parser = new tsdoc.TSDocParser(customConfiguration);
@@ -23,17 +22,20 @@ interface IApiItemJson {
   docComment?: string;
 }
 
-type Replacement = { from: string | RegExp, to: string };
+type Replacement = {from: string | RegExp; to: string};
 class Replacements {
   replacements: Replacement[] = [];
   constructor(replacements: Replacement[]) {
     this.replacements = replacements;
   }
   replace(str: string) {
-    return this.replacements.reduce((str: string, replacement: Replacement) => str.replace(replacement.from, replacement.to), str);
+    return this.replacements.reduce(
+      (str: string, replacement: Replacement) => str.replace(replacement.from, replacement.to),
+      str,
+    );
   }
 }
-type Interception = { id: string, handler: (id: string, module: any) => any };
+type Interception = {id: string; handler: (id: string, module: any) => any};
 class Interceptor {
   interceptions: Interception[] = [];
   constructor(interceptions: Interception[]) {
@@ -41,7 +43,9 @@ class Interceptor {
   }
   handle(id: string, originalModule: any) {
     id = require.resolve(id);
-    return this.interceptions.filter(i => i.id === id).reduce((module: any, int: Interception) => int.handler(id, module), originalModule);
+    return this.interceptions
+      .filter(i => i.id === id)
+      .reduce((module: any, int: Interception) => int.handler(id, module), originalModule);
   }
   isHandled(id: string) {
     return this.interceptions.filter(i => i.id === id).length > 0;
@@ -50,10 +54,7 @@ class Interceptor {
     return this.interceptions.map(i => i.id);
   }
 }
-const replacer = new Replacements([
-  { from: /shift-refactor/g, to: '../../' },
-]);
-
+const replacer = new Replacements([{from: /shift-refactor/g, to: '../../'}]);
 
 (function main() {
   const failures = walk([api]);
@@ -104,7 +105,15 @@ function walk(nodes: IApiItemJson[]) {
           //       get main() { return require.main; },
           //     });
           //   }());
-          const context = { require, console, global, __dirname, reference, src: exampleSource, assertion: wrapAssertion(assertSource) };
+          const context = {
+            require,
+            console,
+            global,
+            __dirname,
+            reference,
+            src: exampleSource,
+            assertion: wrapAssertion(assertSource),
+          };
           vm.createContext(context);
           vm.runInContext(testSrc, context);
           console.log(`ok: ${reference.ref}`);
@@ -138,7 +147,7 @@ function walk(nodes: IApiItemJson[]) {
 }
 
 function extractFencedBlock(tsdoc: string, type = '@example') {
-  const { docComment } = parser.parseString(tsdoc);
+  const {docComment} = parser.parseString(tsdoc);
   const example = docComment.customBlocks.find(x => x.blockTag.tagName === type);
   if (example) {
     const fencedCode = example.content.nodes.find(
@@ -150,7 +159,7 @@ function extractFencedBlock(tsdoc: string, type = '@example') {
 }
 
 function extractCodeOnlyBlock(tsdoc: string, type = '@assert') {
-  const { docComment } = parser.parseString(tsdoc);
+  const {docComment} = parser.parseString(tsdoc);
   const block = docComment.customBlocks.find(x => x.blockTag.tagName === type) as tsdoc.DocBlock;
   if (block) {
     const fencedCode = block.content.nodes.find(
@@ -162,16 +171,21 @@ function extractCodeOnlyBlock(tsdoc: string, type = '@assert') {
 }
 
 function makeSpy(fn: Function) {
-  const spy: Function & { called: boolean, orig: typeof fn } = Object.assign(function (this: any, ...args: any[]) {
-    spy.called = true;
-    return fn.apply(this, args);
-  }, { orig: fn, called: false });
-  Object.assign(fn, { spy });
+  const spy: Function & {called: boolean; orig: typeof fn} = Object.assign(
+    function(this: any, ...args: any[]) {
+      spy.called = true;
+      return fn.apply(this, args);
+    },
+    {orig: fn, called: false},
+  );
+  Object.assign(fn, {spy});
   return spy;
 }
 
 function findMethod(ref: string) {
-  const match = ref.match(/^(?<package>[\w0-9-]*)!(?:(?<class>[\w0-9-]*)#)?(?<name>[\w0-9-$]*):(?<type>[\w0-9-]*)\((?<id>\d+)\)$/);
+  const match = ref.match(
+    /^(?<package>[\w0-9-]*)!(?:(?<class>[\w0-9-]*)#)?(?<name>[\w0-9-$]*):(?<type>[\w0-9-]*)\((?<id>\d+)\)$/,
+  );
   if (!match || !match.groups) throw new Error(`Internal error: Unaccounted for reference string format ${ref}`);
   return {
     package: match.groups.package,
@@ -179,6 +193,6 @@ function findMethod(ref: string) {
     id: match.groups.id,
     type: match.groups.type,
     class: match.groups.class,
-    ref
+    ref,
   };
 }

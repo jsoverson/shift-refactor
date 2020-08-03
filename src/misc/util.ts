@@ -1,9 +1,7 @@
 import {
-  BindingIdentifier,
   ComputedMemberAssignmentTarget,
   ComputedMemberExpression,
   ExpressionStatement,
-  FormalParameters,
   IdentifierExpression,
   LiteralInfinityExpression,
   LiteralNullExpression,
@@ -17,11 +15,9 @@ import {
   StaticMemberExpression,
   UnaryExpression,
 } from 'shift-ast';
-import {Scope} from 'shift-scope';
 import traverser from 'shift-traverser';
-import {BaseIdGenerator} from '../id-generator/id-generator';
 import {query} from './query';
-import {RefactorError, SelectorOrNode, NodesWithStatements} from './types';
+import {NodesWithStatements, RefactorError, SelectorOrNode} from './types';
 
 export function copy(object: any) {
   return JSON.parse(JSON.stringify(object));
@@ -111,25 +107,6 @@ export function extractExpression(tree: Script) {
       throw new RefactorError(`Can't replace an expression with a node of type ${tree.statements[0].type}`);
     }
   }
-}
-
-export function renameScope(scope: Scope, idGenerator: BaseIdGenerator, parentMap: WeakMap<Node, Node>) {
-  if (scope.type.name !== 'Global' && scope.type.name !== 'Script') {
-    scope.variableList.forEach(variable => {
-      if (variable.declarations.length === 0) return;
-      const nextId = idGenerator.next().value;
-      const isParam = variable.declarations.find(_ => _.type.name === 'Parameter');
-      let newName = `$$${nextId}`;
-      if (isParam) {
-        const parent = parentMap.get(isParam.node) as FormalParameters;
-        const position = parent.items.indexOf(isParam.node as BindingIdentifier);
-        newName = `$arg${position}_${nextId}`;
-      }
-      variable.declarations.forEach(_ => (_.node.name = newName));
-      variable.references.forEach(_ => (_.node.name = newName));
-    });
-  }
-  scope.children.forEach(_ => renameScope(_, idGenerator, parentMap));
 }
 
 export function buildParentMap(tree: Node) {

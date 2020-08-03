@@ -164,17 +164,19 @@ const names = $bindingIdentifiers.map(node => node.name);
 - [`.codegen()`](#codegen)
 - [`.declarations()`](#declarations)
 - [`.delete()`](#delete)
+- [`.filter(iterator)`](#filteriterator)
 - [`.find(iterator)`](#finditerator)
 - [`.findMatchingExpression(sampleSrc)`](#findmatchingexpressionsamplesrc)
 - [`.findMatchingStatement(sampleSrc)`](#findmatchingstatementsamplesrc)
 - [`.findOne(selectorOrNode)`](#findoneselectorornode)
-- [`.first()`](#first)
+- [`.first(selector)`](#firstselector)
 - [`.forEach(iterator)`](#foreachiterator)
 - [`.get(index)`](#getindex)
 - [`.logOut()`](#logout)
 - [`.lookupVariable()`](#lookupvariable)
 - [`.lookupVariableByName(name)`](#lookupvariablebynamename)
 - [`.map(iterator)`](#mapiterator)
+- [`.nameString()`](#namestring)
 - [`.parents()`](#parents)
 - [`.prepend(replacer)`](#prependreplacer)
 - [`.print()`](#print)
@@ -184,6 +186,7 @@ const names = $bindingIdentifiers.map(node => node.name);
 - [`.replace(replacer)`](#replacereplacer)
 - [`.replaceAsync(replacer)`](#replaceasyncreplacer)
 - [`.replaceChildren(query, replacer)`](#replacechildrenquery-replacer)
+- [`.statements()`](#statements)
 - [`.toJSON()`](#tojson)
 
 #### `.$(queryOrNodes)`
@@ -320,6 +323,27 @@ $script = refactor('foo();bar();');
 $script('ExpressionStatement[expression.callee.name="foo"]').delete();
 ```
 
+#### `.filter(iterator)`
+
+Filter selected nodes via passed iterator
+
+#### Example
+
+```js
+const { refactor } = require('shift-refactor');
+
+const src = `
+let doc = window.document;
+function addListener(event, fn) {
+  doc.addEventListener(event, fn);
+}
+`
+
+$script = refactor(src);
+
+const values = $script('BindingIdentifier').filter(node => node.name === 'doc');
+```
+
 #### `.find(iterator)`
 
 Finds node via the passed iterator iterator
@@ -418,9 +442,9 @@ $script = refactor(src);
 const innerVariableDecl = $script('FunctionDeclaration').findOne('VariableDeclarator');
 ```
 
-#### `.first()`
+#### `.first(selector)`
 
-Returns the first node in the list
+Returns the first selected node. Optionally takes a selector and returns the first node that matches the selector.
 
 #### Example
 
@@ -557,6 +581,23 @@ function addListener(event, fn) {
 $script = refactor(src);
 
 const values = $script('BindingIdentifier').map(node => node.name);
+```
+
+#### `.nameString()`
+
+Retrieve the names of the first selected node. Returns undefined for nodes without names.
+
+#### Example
+
+```js
+const { refactor } = require('shift-refactor');
+
+const src = `
+var first = 1, second = 2;
+`
+
+$script = refactor(src);
+const firstName = $script('BindingIdentifier[name="first"]').nameString();
 ```
 
 #### `.parents()`
@@ -755,6 +796,25 @@ $script.replaceChildren(
  'BinaryExpression[left.type=LiteralNumericExpression][right.type=LiteralNumericExpression]',
  (node) => new Shift.LiteralNumericExpression({value: node.left.value + node.right.value})
 );
+```
+
+#### `.statements()`
+
+Returns the selects the statements for the selected nodes. Note: it will "uplevel" the inner statements of nodes with a`.body`property.Does nothing for nodes that have no statements property.
+
+#### Example
+
+```js
+const { refactor } = require('shift-refactor');
+
+const src = `
+console.log(1);
+console.log(2);
+`
+
+$script = refactor(src);
+
+const rootStatements = $script.statements();
 ```
 
 #### `.toJSON()`
