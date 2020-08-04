@@ -175,7 +175,7 @@ export class RefactorSessionChainable {
    *
    */
   rename(newName: string) {
-    this.session.rename(this.first(), newName);
+    this.session.rename(this.raw(), newName);
     return this;
   }
 
@@ -315,6 +315,36 @@ export class RefactorSessionChainable {
   }
 
   /**
+   * Return the type of the first selected node
+   *
+   * @example
+   *
+   * ```js
+   * const { refactor } = require('shift-refactor');
+   * const Shift = require('shift-ast');
+   *
+   * const src = `
+   * myFunction();
+   * `
+   *
+   * $script = refactor(src);
+   *
+   * const type = $script('CallExpression').type();
+   * ```
+   *
+   * @assert
+   *
+   * ```js
+   * assert.equal(type, 'CallExpression');
+   * ```
+   *
+   * @public
+   */
+  type(): string {
+    return this.raw().type;
+  }
+
+  /**
    * Returns the first selected node. Optionally takes a selector and returns the first node that matches the selector.
    *
    * @example
@@ -336,16 +366,45 @@ export class RefactorSessionChainable {
    * @assert
    *
    * ```js
-   * assert.equal(func1CallExpression, $script.root.statements[0].expression);
+   * assert.equal(func1CallExpression.raw(), $script.root.statements[0].expression);
    * ```
    *
    * @public
    */
-  first(selector?: string): Node {
+  first(selector?: string): RefactorSessionChainable {
     if (selector) {
       return this.find(node => matches(node, selector)).first();
     }
-    return this.session.first();
+    return this.$(this.session.first());
+  }
+
+  /**
+   * Returns the raw Shift node for the first selected node.
+   *
+   * @example
+   *
+   * ```js
+   * const { refactor } = require('shift-refactor');
+   *
+   * const src = `
+   * const a = 2;
+   * `
+   *
+   * $script = refactor(src);
+   *
+   * const declStatement = $script('VariableDeclarationStatement').raw();
+   * ```
+   *
+   * @assert
+   *
+   * ```js
+   * assert(declStatement === $script.root.statements[0]);
+   * ```
+   *
+   * @public
+   */
+  raw(): Node {
+    return this.nodes[0];
   }
 
   /**
@@ -403,7 +462,7 @@ export class RefactorSessionChainable {
    * @public
    */
   nameString(): string {
-    const node = this.first();
+    const node = this.raw();
     if (!('name' in node)) return '';
     const nameNode = node.name;
     if (!nameNode) return '';
@@ -630,13 +689,13 @@ export class RefactorSessionChainable {
    * @assert
    *
    * ```js
-   * assert.deepEqual(values, [{type: "BindingIdentifier", name:"doc"}]);
+   * assert.deepEqual(values.nodes, [{type: "BindingIdentifier", name:"doc"}]);
    * ```
    *
    * @public
    */
-  filter(iterator: (node: any, i?: number) => any): any[] {
-    return this.nodes.filter(iterator);
+  filter(iterator: (node: any, i?: number) => any): RefactorSessionChainable {
+    return this.$(this.nodes.filter(iterator));
   }
 
   /**
@@ -814,13 +873,13 @@ export class RefactorSessionChainable {
    * @assert
    *
    * ```js
-   * assert.equal(refs[0].length, 3);
+   * assert.equal(refs.length, 3);
    * ```
    *
    * @public
    */
-  references(): Reference[][] {
-    return this.nodes.map(node =>
+  references(): Reference[] {
+    return this.nodes.flatMap(node =>
       this.session.globalSession.findReferences(node as SimpleIdentifier | SimpleIdentifierOwner),
     );
   }
@@ -852,14 +911,13 @@ export class RefactorSessionChainable {
    * @assert
    *
    * ```js
-   * assert.equal(decls[0].length, 1);
-   * assert.equal(decls[1].length, 1);
+   * assert.equal(decls.length, 2);
    * ```
    *
    * @public
    */
-  declarations(): Declaration[][] {
-    return this.nodes.map(node =>
+  declarations(): Declaration[] {
+    return this.nodes.flatMap(node =>
       this.session.globalSession.findDeclarations(node as SimpleIdentifier | SimpleIdentifierOwner),
     );
   }
@@ -931,7 +989,8 @@ export class RefactorSessionChainable {
    * @public
    */
   statements() {
-    const statements: Statement[] = this.map(innerBodyStatements)
+    const statements: Statement[] = this.nodes
+      .map(innerBodyStatements)
       .filter(isNodeWithStatements)
       .flatMap((node: NodesWithStatements) => node.statements);
     return this.$(statements);

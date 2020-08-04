@@ -181,6 +181,7 @@ const names = $bindingIdentifiers.map(node => node.name);
 - [`.prepend(replacer)`](#prependreplacer)
 - [`.print()`](#print)
 - [`.query(selector)`](#queryselector)
+- [`.raw()`](#raw)
 - [`.references()`](#references)
 - [`.rename(newName)`](#renamenewname)
 - [`.replace(replacer)`](#replacereplacer)
@@ -188,6 +189,7 @@ const names = $bindingIdentifiers.map(node => node.name);
 - [`.replaceChildren(query, replacer)`](#replacechildrenquery-replacer)
 - [`.statements()`](#statements)
 - [`.toJSON()`](#tojson)
+- [`.type()`](#type)
 
 #### `.$(queryOrNodes)`
 
@@ -674,6 +676,24 @@ Sub-query from selected nodes
 
 synonym for .$()
 
+#### `.raw()`
+
+Returns the raw Shift node for the first selected node.
+
+#### Example
+
+```js
+const { refactor } = require('shift-refactor');
+
+const src = `
+const a = 2;
+`
+
+$script = refactor(src);
+
+const declStatement = $script('VariableDeclarationStatement').raw();
+```
+
 #### `.references()`
 
 Finds the references for the selected Identifier nodes.
@@ -833,5 +853,24 @@ const src = `
 $script = refactor(src);
 
 const json = $script.toJSON();
+```
+
+#### `.type()`
+
+Return the type of the first selected node
+
+#### Example
+
+```js
+const { refactor } = require('shift-refactor');
+const Shift = require('shift-ast');
+
+const src = `
+myFunction();
+`
+
+$script = refactor(src);
+
+const type = $script('CallExpression').type();
 ```
 

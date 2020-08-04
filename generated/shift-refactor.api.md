@@ -212,14 +212,14 @@ export class RefactorSessionChainable {
     codegen(): any[];
     // @internal (undocumented)
     static create(session: RefactorSession): RefactorQueryAPI;
-    declarations(): Declaration[][];
+    declarations(): Declaration[];
     delete(): this;
-    filter(iterator: (node: any, i?: number) => any): any[];
+    filter(iterator: (node: any, i?: number) => any): RefactorSessionChainable;
     find(iterator: (node: any, i?: number) => any): RefactorQueryAPI;
     findMatchingExpression(sampleSrc: string): RefactorQueryAPI;
     findMatchingStatement(sampleSrc: string): RefactorQueryAPI;
     findOne(selectorOrNode: string): RefactorQueryAPI;
-    first(selector?: string): Node;
+    first(selector?: string): RefactorSessionChainable;
     forEach(iterator: (node: any, i?: number) => any): RefactorSessionChainable;
     get(index: number): Node;
     // (undocumented)
@@ -237,7 +237,8 @@ export class RefactorSessionChainable {
     prepend(replacer: Replacer): RefactorSessionChainable;
     print(): any;
     query(selector: string | string[]): RefactorQueryAPI;
-    references(): Reference[][];
+    raw(): Node;
+    references(): Reference[];
     rename(newName: string): this;
     replace(replacer: Replacer): RefactorSessionChainable;
     replaceAsync(replacer: AsyncReplacer): Promise<number>;
@@ -250,6 +251,7 @@ export class RefactorSessionChainable {
     session: RefactorSession;
     statements(): RefactorQueryAPI;
     toJSON(): string;
+    type(): string;
     // @internal (undocumented)
     static with<S extends Constructor<any> & Pluggable, T extends Plugin>(this: S, plugin: T): S & Pluggable & Constructor<ReturnType<T>>;
 }

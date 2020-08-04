@@ -12,7 +12,7 @@ describe('Regression', function() {
       const a = $script('VariableDeclarationStatement');
       $script('VariableDeclarationStatement').delete();
       const b = $script('VariableDeclarationStatement');
-      expect($script.first()).to.deep.equal(parse('test()'));
+      expect($script.raw()).to.deep.equal(parse('test()'));
       expect(a.length).to.equal(1);
       expect(b.length).to.equal(0);
     });

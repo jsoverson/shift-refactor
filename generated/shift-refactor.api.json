@@ -2204,7 +2204,7 @@
             {
               "kind": "Method",
               "canonicalReference": "shift-refactor!RefactorSessionChainable#declarations:member(1)",
-              "docComment": "/**\n * Finds the declaration for the selected Identifier nodes.\n *\n * @remarks\n *\n * Returns a list of Declaration objects for each selected node, not a shift-refactor query object.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const myVariable = 2, otherVar = 3;\n * console.log(myVariable, otherVar);\n * `\n *\n * $script = refactor(src);\n *\n * // selects the parameters to console.log() and finds their declarations\n * const decls = $script('CallExpression[callee.object.name=\"console\"][callee.property=\"log\"] > .arguments').declarations();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(decls[0].length, 1);\n * assert.equal(decls[1].length, 1);\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Finds the declaration for the selected Identifier nodes.\n *\n * @remarks\n *\n * Returns a list of Declaration objects for each selected node, not a shift-refactor query object.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const myVariable = 2, otherVar = 3;\n * console.log(myVariable, otherVar);\n * `\n *\n * $script = refactor(src);\n *\n * // selects the parameters to console.log() and finds their declarations\n * const decls = $script('CallExpression[callee.object.name=\"console\"][callee.property=\"log\"] > .arguments').declarations();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(decls.length, 2);\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -2217,7 +2217,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[][]"
+                  "text": "[]"
                 },
                 {
                   "kind": "Content",
@@ -2265,7 +2265,7 @@
             {
               "kind": "Method",
               "canonicalReference": "shift-refactor!RefactorSessionChainable#filter:member(1)",
-              "docComment": "/**\n * Filter selected nodes via passed iterator\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let doc = window.document;\n * function addListener(event, fn) {\n *   doc.addEventListener(event, fn);\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const values = $script('BindingIdentifier').filter(node => node.name === 'doc');\n * ```\n *\n * @assert\n * ```js\n * assert.deepEqual(values, [{type: \"BindingIdentifier\", name:\"doc\"}]);\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Filter selected nodes via passed iterator\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let doc = window.document;\n * function addListener(event, fn) {\n *   doc.addEventListener(event, fn);\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const values = $script('BindingIdentifier').filter(node => node.name === 'doc');\n * ```\n *\n * @assert\n * ```js\n * assert.deepEqual(values.nodes, [{type: \"BindingIdentifier\", name:\"doc\"}]);\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -2280,8 +2280,9 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any[]"
+                  "kind": "Reference",
+                  "text": "RefactorSessionChainable",
+                  "canonicalReference": "shift-refactor!RefactorSessionChainable:class"
                 },
                 {
                   "kind": "Content",
@@ -2489,7 +2490,7 @@
             {
               "kind": "Method",
               "canonicalReference": "shift-refactor!RefactorSessionChainable#first:member(1)",
-              "docComment": "/**\n * Returns the first selected node. Optionally takes a selector and returns the first node that matches the selector.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * func1();\n * func2();\n * func3();\n * `\n *\n * $script = refactor(src);\n *\n * const func1CallExpression = $script('CallExpression').first();\n * ```\n *\n * @assert\n * ```js\n * assert.equal(func1CallExpression, $script.root.statements[0].expression);\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Returns the first selected node. Optionally takes a selector and returns the first node that matches the selector.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * func1();\n * func2();\n * func3();\n * `\n *\n * $script = refactor(src);\n *\n * const func1CallExpression = $script('CallExpression').first();\n * ```\n *\n * @assert\n * ```js\n * assert.equal(func1CallExpression.raw(), $script.root.statements[0].expression);\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -2505,8 +2506,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Node",
-                  "canonicalReference": "shift-ast!Node:type"
+                  "text": "RefactorSessionChainable",
+                  "canonicalReference": "shift-refactor!RefactorSessionChainable:class"
                 },
                 {
                   "kind": "Content",
@@ -3041,8 +3042,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#raw:member(1)",
+              "docComment": "/**\n * Returns the raw Shift node for the first selected node.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * const a = 2;\n * `\n *\n * $script = refactor(src);\n *\n * const declStatement = $script('VariableDeclarationStatement').raw();\n * ```\n *\n * @assert\n * ```js\n * assert(declStatement === $script.root.statements[0]);\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "raw(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Node",
+                  "canonicalReference": "shift-ast!Node:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "raw"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "shift-refactor!RefactorSessionChainable#references:member(1)",
-              "docComment": "/**\n * Finds the references for the selected Identifier nodes.\n *\n * @remarks\n *\n * Returns a list of Reference objects for each selected node, not a shift-refactor query object.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let myVar = 1;\n * function someFunction(a,b) {\n *   myVar++;\n *   return myVar;\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const refs = $script('BindingIdentifier[name=\"myVar\"]').references();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(refs[0].length, 3);\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Finds the references for the selected Identifier nodes.\n *\n * @remarks\n *\n * Returns a list of Reference objects for each selected node, not a shift-refactor query object.\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n *\n * const src = `\n * let myVar = 1;\n * function someFunction(a,b) {\n *   myVar++;\n *   return myVar;\n * }\n * `\n *\n * $script = refactor(src);\n *\n * const refs = $script('BindingIdentifier[name=\"myVar\"]').references();\n *\n * ```\n *\n * @assert\n * ```js\n * assert.equal(refs.length, 3);\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -3055,7 +3085,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[][]"
+                  "text": "[]"
                 },
                 {
                   "kind": "Content",
@@ -3384,6 +3414,34 @@
               "overloadIndex": 1,
               "parameters": [],
               "name": "toJSON"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "shift-refactor!RefactorSessionChainable#type:member(1)",
+              "docComment": "/**\n * Return the type of the first selected node\n *\n * @example\n * ```js\n * const { refactor } = require('shift-refactor');\n * const Shift = require('shift-ast');\n *\n * const src = `\n * myFunction();\n * `\n *\n * $script = refactor(src);\n *\n * const type = $script('CallExpression').type();\n * ```\n *\n * @assert\n * ```js\n * assert.equal(type, 'CallExpression');\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "type(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "type"
             }
           ],
           "implementsTokenRanges": []

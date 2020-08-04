@@ -63,7 +63,7 @@
     "build-all": "npm run compile && npm run extract-api && npm run generate-docs",
     "compile": "npm run clean && npm run build",
     "clean": "rm -rf dist && rm -rf generated",
-    "prepublishOnly": "npm run compile",
+    "prepublishOnly": "npm run build-all",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "watch": "npm run clean && tsc -w --declaration",
     "generate-docs": "ts-node scripts/doc-generator.ts",

@@ -24,10 +24,10 @@ describe('chainable interface', () => {
     expect($rootIds.length).to.equal(2);
     const $child = $script('CallExpression');
     expect($child.length).to.equal(1);
-    expect($child.first().type).to.equal('CallExpression');
+    expect($child.raw().type).to.equal('CallExpression');
     const $idExpr = $child('IdentifierExpression');
     expect($idExpr.length).to.equal(1);
-    expect($idExpr.first().type).to.equal('IdentifierExpression');
+    expect($idExpr.raw().type).to.equal('IdentifierExpression');
   });
   it('should support chaining across methods that return nodes', () => {
     const src = `b(1);`;
@@ -72,7 +72,7 @@ describe('chainable interface', () => {
     const src = `idExp = () => {function notThisOne(){}}\nfunction foo(){}\nfoo();`;
     const $s = refactor(src);
     const rootStatements = $s.statements();
-    const firstFn = rootStatements.first('FunctionDeclaration');
+    const firstFn = rootStatements.first('FunctionDeclaration').raw();
     expect(firstFn.type).to.equal('FunctionDeclaration');
     expect($s(firstFn).nameString()).to.equal('foo');
   });
@@ -80,13 +80,18 @@ describe('chainable interface', () => {
   it('statements should also get .body.statements', () => {
     const src = `try { var foo = 1; } catch(e){}`;
     const $s = refactor(src);
-    const innerStatements = $s($s.statements().first('TryCatchStatement')).statements();
+    const innerStatements = $s(
+      $s
+        .statements()
+        .first('TryCatchStatement')
+        .raw(),
+    ).statements();
     expect(innerStatements.length).to.equal(1);
-    expect(innerStatements.first().type).to.equal('VariableDeclarationStatement');
+    expect(innerStatements.raw().type).to.equal('VariableDeclarationStatement');
     expect(
       refactor(`!(function(){foo();}())`)('FunctionExpression')
         .statements()
-        .first().type,
+        .raw().type,
     ).to.equal('ExpressionStatement');
   });
 
